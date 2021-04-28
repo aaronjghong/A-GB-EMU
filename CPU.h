@@ -17,6 +17,8 @@ class CPU{
 
         uint8_t h_CYCLES;   // For Opcode cycle count, public as main.cpp will use this to emulate accurately
 
+        bool stopped = false;   // For STOP instruction (?)
+
     private:
 
         uint8_t h_MEMORY[0xFFFF];    // 16 bit address bus
@@ -29,6 +31,10 @@ class CPU{
 
         uint16_t h_SP;   // Stack Pointer
         uint16_t h_PC;   // Program Counter
+
+        bool h_IME = false;   // IME Flag (interrupt master enable)
+        uint16_t h_IE;    // IE Register
+        uint16_t h_IF;    // IF Flag
 
         /* 16-bit Register Functions */
 
@@ -105,6 +111,20 @@ class CPU{
             if(on) h_F |= 0b00010000;
             else h_F &= 0b11101111;
         }
+
+        /* Opcode Helper Functions */
+        void conditionalRelativeJump(bool condition, int8_t offset);
+        void relativeJump(int8_t offset);
+        void add8(uint8_t target, uint8_t addend); 
+        void increment8(uint8_t &target);
+        void decrement8(uint8_t &target);
+        
+        //void increment16(uint16_t target); // -> unnecessary?
+        //void decrement16(uint16_t target); // -> unnecessary?
+        //void load16(uint16_t &target, uint16_t data); // -> want to implement this but not sure how at the moment
+        //void load8(uint8_t &target, uint8_t data); // -> unnecessary? will implement if load16 gets implemented
+        //void add16(uint16_t target, uint16_t addend); // -> want to implement this but not sure how at the moment
+
 
         /* Opcode Functions */
 

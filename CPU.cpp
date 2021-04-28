@@ -28,7 +28,46 @@ void CPU::executeOpcode(uint8_t opc, bool CB_mode = false){
     (this->*opc_to_execute)(opc);
 }
 
+////////////////////////////////////////
+/* Opcode Helper Function Definitions */
+////////////////////////////////////////
+
+void CPU::conditionalRelativeJump(bool condition, int8_t offset){
+    if(condition){
+        relativeJump(offset);
+    }
+    else{
+        h_CYCLES = 8;
+    }
+}
+void CPU::relativeJump(int8_t offset){
+    h_PC += offset;
+    h_CYCLES = 12;
+}
+
+void CPU::add8(uint8_t target, uint8_t addend){}
+
+void CPU::increment8(uint8_t &target){
+    set_flag_N(false);
+    uint8_t value = target + 1;
+    set_flag_Z(value == 0);
+    if(((target & 0xf) + 1) & 0x10 == 0x10) set_flag_H(true);
+    target = value;
+    h_CYCLES = 4;
+}
+
+void CPU::decrement8(uint8_t &target){
+    set_flag_N(true);
+    uint8_t value = target - 1;
+    set_flag_Z(value == 0);
+    if(((target & 0x10) - 1) & 0x10 == 0) set_flag_H(true);
+    target = value;
+    h_CYCLES = 4;
+}
+
+////////////////////////////////////////
 /* Non-CB Prefixed Opcode Definitions */
+////////////////////////////////////////
 
 void CPU::opc_00(uint8_t opc){
     // NOP - No Operation
@@ -52,21 +91,11 @@ void CPU::opc_03(uint8_t opc){
 }
 void CPU::opc_04(uint8_t opc){
     // INC B
-    uint8_t value = h_B + 1;
-    set_flag_N(false);
-    if(value == 0) set_flag_Z(true);
-    if(((h_B & 0xf) + 1) & 0x10 == 0x10) set_flag_H(true);
-    h_B = value;
-    h_CYCLES = 4;
+    increment8(h_B);
 }
 void CPU::opc_05(uint8_t opc){
     // DEC B
-    uint8_t value = h_B - 1;
-    set_flag_N(true);
-    if(value == 0) set_flag_Z(true);
-    if(((h_B & 0x10) - 1) & 0x10 == 0) set_flag_H(true);
-    h_B = value;
-    h_CYCLES = 4;
+    decrement8(h_B);
 }
 void CPU::opc_06(uint8_t opc){
     // LD B, u8
@@ -75,11 +104,12 @@ void CPU::opc_06(uint8_t opc){
 }
 void CPU::opc_07(uint8_t opc){
     // RLCA
-    bool carry = false;
-    if(h_A & 0b10000000) carry = true;
     set_flag_H(false);
     set_flag_Z(false);
     set_flag_N(false);
+
+    bool carry = false;
+    if(h_A & 0b10000000) carry = true;
     set_flag_C(carry);
     h_A <<= 1;
     if(carry) h_A |= 0b00000001;
@@ -111,21 +141,11 @@ void CPU::opc_0B(uint8_t opc){
 }
 void CPU::opc_0C(uint8_t opc){
     // INC C
-    uint8_t value = h_C + 1;
-    set_flag_N(false);
-    if(value == 0) set_flag_Z(true);
-    if(((h_C & 0xf) + 1) & 0x10 == 0x10) set_flag_H(true);
-    h_C = value;
-    h_CYCLES = 4;
+    increment8(h_C);
 }
 void CPU::opc_0D(uint8_t opc){
     // DEC C
-    uint8_t value = h_C - 1;
-    set_flag_N(true);
-    if(value == 0) set_flag_Z(true);
-    if(((h_C & 0x10) - 1) & 0x10 == 0) set_flag_H(true);
-    h_C = value;
-    h_CYCLES = 4;
+    decrement8(h_C);
 }
 void CPU::opc_0E(uint8_t opc){
     // LD C, u8
@@ -134,67 +154,298 @@ void CPU::opc_0E(uint8_t opc){
 }
 void CPU::opc_0F(uint8_t opc){
     // RRCA
-    bool carry = false;
-    if(h_A & 0b00000001) carry = true;
     set_flag_H(false);
     set_flag_Z(false);
     set_flag_N(false);
-    set_flag_C(true);
+
+    bool carry = false;
+    if(h_A & 0b00000001) carry = true;
+    set_flag_C(carry);
     h_A >>= 1;
     if(carry) h_A |= 0b10000000;
     h_CYCLES = 4;
 }
 
-void CPU::opc_10(uint8_t opc){}
-void CPU::opc_11(uint8_t opc){}
-void CPU::opc_12(uint8_t opc){}
-void CPU::opc_13(uint8_t opc){}
-void CPU::opc_14(uint8_t opc){}
-void CPU::opc_15(uint8_t opc){}
-void CPU::opc_16(uint8_t opc){}
-void CPU::opc_17(uint8_t opc){}
-void CPU::opc_18(uint8_t opc){}
-void CPU::opc_19(uint8_t opc){}
-void CPU::opc_1A(uint8_t opc){}
-void CPU::opc_1B(uint8_t opc){}
-void CPU::opc_1C(uint8_t opc){}
-void CPU::opc_1D(uint8_t opc){}
-void CPU::opc_1E(uint8_t opc){}
-void CPU::opc_1F(uint8_t opc){}
+void CPU::opc_10(uint8_t opc){
+    // STOP -> double check if this takes 2 bytes or 1 byte
+    // h_IME = false; -> check if this is true
+    stopped = true;
+    h_CYCLES = 4;
+}
+void CPU::opc_11(uint8_t opc){
+    // LD DE, u16
+    uint16_t data = (h_MEMORY[h_PC++] << 8) | h_MEMORY[h_PC++];
+    set_h_DE(data);
+    h_CYCLES = 12;
+}
+void CPU::opc_12(uint8_t opc){
+    // LD (DE), A
+    h_MEMORY[get_h_DE()] = h_A;
+    h_CYCLES = 8;
+}
+void CPU::opc_13(uint8_t opc){
+    // INC DE
+    set_h_DE(get_h_DE() + 1);
+    h_CYCLES = 8;
+}
+void CPU::opc_14(uint8_t opc){
+    // INC D
+    increment8(h_D);
+}
+void CPU::opc_15(uint8_t opc){
+    // DEC D
+    decrement8(h_D);
+}
+void CPU::opc_16(uint8_t opc){
+    // LD D, u8
+    h_D = h_MEMORY[h_PC++];
+    h_CYCLES = 8;
+}
+void CPU::opc_17(uint8_t opc){
+    // RLA
+    set_flag_H(false);
+    set_flag_N(false);
+    set_flag_Z(false);
 
-void CPU::opc_20(uint8_t opc){}
-void CPU::opc_21(uint8_t opc){}
-void CPU::opc_22(uint8_t opc){}
-void CPU::opc_23(uint8_t opc){}
-void CPU::opc_24(uint8_t opc){}
-void CPU::opc_25(uint8_t opc){}
-void CPU::opc_26(uint8_t opc){}
-void CPU::opc_27(uint8_t opc){}
-void CPU::opc_28(uint8_t opc){}
-void CPU::opc_29(uint8_t opc){}
-void CPU::opc_2A(uint8_t opc){}
-void CPU::opc_2B(uint8_t opc){}
-void CPU::opc_2C(uint8_t opc){}
-void CPU::opc_2D(uint8_t opc){}
-void CPU::opc_2E(uint8_t opc){}
-void CPU::opc_2F(uint8_t opc){}
+    bool bit0 = get_flag_C();
+    set_flag_C((h_A & 0b10000000) >> 7 != 0);
+    h_A = h_A << 1  + uint8_t(bit0);
+    h_CYCLES = 4;
+}
+void CPU::opc_18(uint8_t opc){
+    // JR i8
+    int8_t address = h_MEMORY[h_PC++];
+    h_PC = h_PC + address;
+    h_CYCLES = 12;
+}
+void CPU::opc_19(uint8_t opc){
+    // ADD HL, DE
+    set_flag_N(false);
+    if((get_h_DE() + get_h_HL() & 0x10000 == 0x10000)) set_flag_C(true);
+    if(((get_h_DE() & 0x0FFF) + (get_h_HL() & 0x0FFF) & 0x1000 == 0x1000)) set_flag_H(true);
+    set_h_HL(get_h_HL() + get_h_DE());  // Check if overflow or not (for sanity)
+    h_CYCLES = 8;
+}
+void CPU::opc_1A(uint8_t opc){
+    // LD A, (DE)
+    h_A = h_MEMORY[get_h_DE()];
+    h_CYCLES = 8;
+}
+void CPU::opc_1B(uint8_t opc){
+    // DEC DE
+    set_h_DE(get_h_DE() - 1);
+    h_CYCLES = 8;
+}
+void CPU::opc_1C(uint8_t opc){
+    // INC E
+    increment8(h_E);
+}
+void CPU::opc_1D(uint8_t opc){
+    // DEC E
+    uint8_t value = h_E - 1;
+    decrement8(h_E);
+}
+void CPU::opc_1E(uint8_t opc){
+    // LD E, u8
+    h_E = h_MEMORY[h_PC++];
+    h_CYCLES = 8;
+}
+void CPU::opc_1F(uint8_t opc){
+    // RRA
+    set_flag_H(false);
+    set_flag_N(false);
+    set_flag_Z(false);
 
-void CPU::opc_30(uint8_t opc){}
-void CPU::opc_31(uint8_t opc){}
-void CPU::opc_32(uint8_t opc){}
-void CPU::opc_33(uint8_t opc){}
-void CPU::opc_34(uint8_t opc){}
-void CPU::opc_35(uint8_t opc){}
-void CPU::opc_36(uint8_t opc){}
-void CPU::opc_37(uint8_t opc){}
-void CPU::opc_38(uint8_t opc){}
-void CPU::opc_39(uint8_t opc){}
-void CPU::opc_3A(uint8_t opc){}
-void CPU::opc_3B(uint8_t opc){}
-void CPU::opc_3C(uint8_t opc){}
-void CPU::opc_3D(uint8_t opc){}
-void CPU::opc_3E(uint8_t opc){}
-void CPU::opc_3F(uint8_t opc){}
+    bool bit7 = get_flag_C();
+    set_flag_C((h_A & 0b00000001) != 0);
+    h_A = (h_A >> 1) | bit7;
+    h_CYCLES = 4;
+}
+
+void CPU::opc_20(uint8_t opc){
+    // JR NZ, i8
+    bool condition = !get_flag_Z();
+    int8_t offset = h_MEMORY[h_PC++];
+    conditionalRelativeJump(condition, offset);
+}
+void CPU::opc_21(uint8_t opc){
+    // LD HL, u16
+    uint16_t data = (h_MEMORY[h_PC++] << 8) | h_MEMORY[h_PC++];
+    set_h_HL(data);
+    h_CYCLES = 12;
+}
+void CPU::opc_22(uint8_t opc){
+    // LD (HL+), A
+    h_MEMORY[get_h_HL()] = h_A;
+    set_h_HL(get_h_HL() + 1);
+    h_CYCLES = 8;
+}
+void CPU::opc_23(uint8_t opc){
+    // INC HL
+    set_h_HL(get_h_HL() + 1);
+    h_CYCLES = 8;
+}
+void CPU::opc_24(uint8_t opc){
+    // INC H
+    increment8(h_H);
+}
+void CPU::opc_25(uint8_t opc){
+    // DEC H
+    decrement8(h_H);
+}
+void CPU::opc_26(uint8_t opc){
+    // LD H, u8
+    h_H = h_MEMORY[h_PC++];
+    h_CYCLES = 8;
+}
+void CPU::opc_27(uint8_t opc){
+    // DAA
+    if(!get_flag_N){ // Addition occurred 
+        if((h_A & 0xF) > 0x9 || get_flag_H()) h_A += 0x6;
+        if(h_A > 0x99 || get_flag_C()) {h_A += 0x60; set_flag_C(true);}
+    }
+    else{ // Subtraction occurred
+        if(get_flag_C()) h_A -= 0x60;
+        if(get_flag_H()) h_A -= 0x6;
+    }
+    set_flag_Z(h_A == 0);
+    set_flag_H(false);
+    h_CYCLES = 4;
+}
+void CPU::opc_28(uint8_t opc){
+    // JR Z, i8
+    bool condition = get_flag_Z();
+    int8_t offset = h_MEMORY[h_PC++];
+    conditionalRelativeJump(condition, offset);
+}
+void CPU::opc_29(uint8_t opc){
+    // ADD HL, HL
+    set_flag_N(false);
+    if((get_h_HL() + get_h_HL() & 0x10000 == 0x10000)) set_flag_C(true);
+    if(((get_h_HL() & 0x0FFF) + (get_h_HL() & 0x0FFF) & 0x1000 == 0x1000)) set_flag_H(true);
+    set_h_HL(get_h_HL() + get_h_HL());  // Check if overflow or not (for sanity)
+    h_CYCLES = 8;
+}
+void CPU::opc_2A(uint8_t opc){
+    // LD A, (HL+)
+    h_A = h_MEMORY[get_h_HL()];
+    set_h_HL(get_h_HL() + 1);
+    h_CYCLES = 8;
+}
+void CPU::opc_2B(uint8_t opc){
+    // DEC HL
+    set_h_HL(get_h_HL() - 1);
+    h_CYCLES = 8;
+}
+void CPU::opc_2C(uint8_t opc){
+    // INC L
+    increment8(h_L);
+}
+void CPU::opc_2D(uint8_t opc){
+    // DEC L
+    decrement8(h_L);
+}
+void CPU::opc_2E(uint8_t opc){
+    // LD L, u8
+    h_L = h_MEMORY[h_PC++];
+    h_CYCLES = 8;
+}
+void CPU::opc_2F(uint8_t opc){
+    // CPL
+    set_flag_H(true);
+    set_flag_N(true);
+
+    h_A ^= 0b11111111;
+    h_CYCLES = 4;
+}
+
+void CPU::opc_30(uint8_t opc){
+    // JR NC, i8
+    bool condition = get_flag_C();
+    int8_t offset = h_MEMORY[h_PC++];
+    conditionalRelativeJump(condition, offset);
+}
+void CPU::opc_31(uint8_t opc){
+    // LD SP, u16
+    uint16_t data = (h_MEMORY[h_PC++] << 8) | h_MEMORY[h_PC++];
+    h_SP = data;
+    h_CYCLES = 12;
+}
+void CPU::opc_32(uint8_t opc){
+    // LD (HL-), A
+    h_MEMORY[get_h_HL()] = h_A;
+    set_h_HL(get_h_HL() - 1);
+    h_CYCLES = 8;
+}
+void CPU::opc_33(uint8_t opc){
+    // INC SP
+    h_SP += 1;
+    h_CYCLES = 8;
+}
+void CPU::opc_34(uint8_t opc){
+    // INC (HL)
+    increment8(h_MEMORY[get_h_HL()]);
+}
+void CPU::opc_35(uint8_t opc){
+    // DEC (HL)
+    decrement8(h_MEMORY[get_h_HL()]);
+}
+void CPU::opc_36(uint8_t opc){
+    // LD (HL), u8
+    h_MEMORY[get_h_HL()] = h_MEMORY[h_PC++];
+    h_CYCLES = 8;
+}
+void CPU::opc_37(uint8_t opc){
+    // SCF
+    set_flag_N(false);
+    set_flag_H(false);
+    set_flag_C(true);
+    h_CYCLES = 4;
+}
+void CPU::opc_38(uint8_t opc){
+    // JR C, s8
+    bool condition = get_flag_C;
+    int8_t offset = h_MEMORY[h_PC++];
+    conditionalRelativeJump(condition, offset);
+}
+void CPU::opc_39(uint8_t opc){
+    // ADD HL, SP
+    set_flag_N(false);
+    if((h_SP + get_h_HL() & 0x10000 == 0x10000)) set_flag_C(true);
+    if(((h_SP & 0x0FFF) + (get_h_HL() & 0x0FFF) & 0x1000 == 0x1000)) set_flag_H(true);
+    set_h_HL(h_SP + get_h_HL());  // Check if overflow or not (for sanity)
+    h_CYCLES = 8;
+}
+void CPU::opc_3A(uint8_t opc){
+    // LD A, (HL-)
+    h_A = h_MEMORY[get_h_HL()];
+    set_h_HL(get_h_HL() - 1);
+    h_CYCLES = 8;
+}
+void CPU::opc_3B(uint8_t opc){
+    // DEC SP
+    h_SP -= 1;
+    h_CYCLES = 8;
+}
+void CPU::opc_3C(uint8_t opc){
+    // INC A
+    increment8(h_A);
+}
+void CPU::opc_3D(uint8_t opc){
+    // DEC A
+    decrement8(h_A);
+}
+void CPU::opc_3E(uint8_t opc){
+    // LD A, u8
+    h_A = h_MEMORY[h_PC++];
+    h_CYCLES = 8;
+}
+void CPU::opc_3F(uint8_t opc){
+    set_flag_H(false);
+    set_flag_N(false);
+    set_flag_C(int(get_flag_C())^1);
+    h_CYCLES = 4;
+}
 
 void CPU::opc_40(uint8_t opc){}
 void CPU::opc_41(uint8_t opc){}
@@ -399,6 +650,10 @@ void CPU::opc_FC(uint8_t opc){}
 void CPU::opc_FD(uint8_t opc){}
 void CPU::opc_FE(uint8_t opc){}
 void CPU::opc_FF(uint8_t opc){}
+
+////////////////////////////////////
+/* CB Prefixed Opcode Definitions */
+////////////////////////////////////
 
 void CPU::opc_CB_00(uint8_t opc){}
 void CPU::opc_CB_01(uint8_t opc){}

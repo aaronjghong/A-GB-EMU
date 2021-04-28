@@ -26,4 +26,6 @@ If you would like to give this a go, I'd highly recommend the following resource
 -   https://gekkio.fi/files/gb-docs/gbctr.pdf
 -   https://izik1.github.io/gbops/index.html
 -   https://robdor.com/2016/08/10/gameboy-emulator-half-carry-flag/
+-   https://meganesulli.com/generate-gb-opcodes/
 -   https://realboyemulator.files.wordpress.com/2013/01/gbcpuman.pdf (Caution with this resource, some information does not seem to match other resources)
+-   https://forums.nesdev.com/viewtopic.php?t=15944 (For DAA instruction)
