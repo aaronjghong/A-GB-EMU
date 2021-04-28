@@ -18,6 +18,7 @@ class CPU{
         uint8_t h_CYCLES;   // For Opcode cycle count, public as main.cpp will use this to emulate accurately
 
         bool stopped = false;   // For STOP instruction (?)
+        bool halted = false;    // For HALT instruction (?)
 
     private:
 
@@ -33,6 +34,7 @@ class CPU{
         uint16_t h_PC;   // Program Counter
 
         bool h_IME = false;   // IME Flag (interrupt master enable)
+        bool i_scheduled = false;   // For EI opcode -> Enable interrupts at the next machine cycle
         uint16_t h_IE;    // IE Register
         uint16_t h_IF;    // IF Flag
 
@@ -115,13 +117,38 @@ class CPU{
         /* Opcode Helper Functions */
         void conditionalRelativeJump(bool condition, int8_t offset);
         void relativeJump(int8_t offset);
-        void add8(uint8_t target, uint8_t addend); 
+        void conditionalPositionJump(bool condition);
+        void positionJump();
+
+        void ret();
+        void conditionalRet(bool condition);
+        void reti();
+
+        void call();
+        void conditionalCall(bool condition);
+
+        void rst(uint8_t f);
+
+        void add8(uint8_t &target, uint8_t addend); 
+        void adc8(uint8_t &target, uint8_t addend);
+
+        void sub8(uint8_t &target, uint8_t subtrahend);
+        void sbc8(uint8_t &target, uint8_t subtrahend);
+
+        void and8(uint8_t &target, uint8_t other);
+        void xor8(uint8_t &target, uint8_t other);
+        void or8(uint8_t &target, uint8_t other);
+
+        void cp8(uint8_t target, uint8_t subtrahend);
+
         void increment8(uint8_t &target);
         void decrement8(uint8_t &target);
-        
+
         //void increment16(uint16_t target); // -> unnecessary?
         //void decrement16(uint16_t target); // -> unnecessary?
-        //void load16(uint16_t &target, uint16_t data); // -> want to implement this but not sure how at the moment
+        //void load16(uint16_t &target, uint16_t data); // -> want to implement this but not sure how at the moment 
+        //    |-> set higher and lower seperately? (EG load16(uint8_t msb, uint8_t lsb, uint16_t data); 
+        //        |-> load16(h_B, h_C, data))
         //void load8(uint8_t &target, uint8_t data); // -> unnecessary? will implement if load16 gets implemented
         //void add16(uint16_t target, uint16_t addend); // -> want to implement this but not sure how at the moment
 
