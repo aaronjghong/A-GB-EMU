@@ -6,12 +6,12 @@ A-GB-EMU (Aaron's Gameboy Emulator) is an ongoing project where I delve deeper i
 
 -   First steps of hardware implementation in code
 -   Opcode arrays (for fetch and decode)
--   Implementation of Non CB-Prefixed Opcodes in code
+-   Implementation of all Opcodes in code
+-   Start of proper memory implementation
 
 ## Next steps
 
--   Finish CB-Opcode Functions
--   Start work with memory (memory control, memory banking, boot rom, etc.)
+-   Continue working with memory (memory control, memory banking, boot rom, etc.)
 -   Learn about Gameboy's display (PPU)
 -   Get timings correct
 -   Implement interrupts

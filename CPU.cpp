@@ -9,7 +9,7 @@ CPU::~CPU(){
 }
 
 uint8_t CPU::getOpcode(){
-    uint8_t opc = h_MEMORY[h_PC++];
+    uint8_t opc = h_MEMORY.readMemory(h_PC++);
     return opc;
 }
 
@@ -48,15 +48,15 @@ void CPU::conditionalPositionJump(bool condition){
 }
 
 void CPU::positionJump(){
-    uint8_t lsb = h_MEMORY[h_PC++];
-    uint8_t msb = h_MEMORY[h_PC++];
+    uint8_t lsb = h_MEMORY.readMemory(h_PC++);
+    uint8_t msb = h_MEMORY.readMemory(h_PC++);
     h_PC = uint16_t(msb << 8 | lsb);
     h_CYCLES = 16;
 }
 
 void CPU::ret(){
-    uint8_t lsb = h_MEMORY[h_SP++];
-    uint8_t msb = h_MEMORY[h_SP++];
+    uint8_t lsb = h_MEMORY.readMemory(h_SP++);
+    uint8_t msb = h_MEMORY.readMemory(h_SP++);
     h_PC = uint16_t((msb << 8)  | lsb);
     h_CYCLES = 16;
 }
@@ -79,10 +79,10 @@ void CPU::reti(){
 void CPU::call(){
     uint8_t msb = uint8_t(h_PC & 0xff00 >> 8);
     uint8_t lsb = uint8_t(h_PC & 0x00ff);
-    h_MEMORY[--h_SP] = msb;
-    h_MEMORY[--h_SP] = lsb;
-    uint8_t msb_PC = h_MEMORY[h_PC++];
-    uint8_t lsb_PC = h_MEMORY[h_PC++];
+    h_MEMORY.writeMemory(--h_SP, msb);
+    h_MEMORY.writeMemory(--h_SP, lsb);
+    uint8_t msb_PC = h_MEMORY.readMemory(h_PC++);
+    uint8_t lsb_PC = h_MEMORY.readMemory(h_PC++);
     h_PC = uint16_t((msb_PC << 8) | lsb_PC);
     h_CYCLES = 24;
 }
@@ -95,8 +95,8 @@ void CPU::conditionalCall(bool condition){
 void CPU::rst(uint8_t f){
     uint8_t msb = uint8_t(h_PC & 0xff00 >> 8);
     uint8_t lsb = uint8_t(h_PC & 0x00ff);
-    h_MEMORY[--h_SP] = msb;
-    h_MEMORY[--h_SP] = lsb;
+    h_MEMORY.writeMemory(--h_SP, msb);
+    h_MEMORY.writeMemory(--h_SP, lsb);
     h_PC = uint16_t((0 << 8) | f);
     h_CYCLES = 16;
 }
@@ -311,15 +311,15 @@ void CPU::opc_00(uint8_t opc){
 }
 void CPU::opc_01(uint8_t opc){
     // LD BC, u16
-    uint8_t lsb = h_MEMORY[h_PC++];
-    uint8_t msb = h_MEMORY[h_PC++];
+    uint8_t lsb = h_MEMORY.readMemory(h_PC++);
+    uint8_t msb = h_MEMORY.readMemory(h_PC++);
     uint16_t data = uint16_t((msb << 8) | lsb);
     set_h_BC(data);
     h_CYCLES = 12;
 }
 void CPU::opc_02(uint8_t opc){
-    // LD BC, u8 -> Revisit?
-    h_MEMORY[get_h_BC()] = h_A;
+    // LD (BC), u8 -> Revisit?
+    h_MEMORY.writeMemory(get_h_BC(), h_A);
     h_CYCLES = 8;
 }
 void CPU::opc_03(uint8_t opc){
@@ -337,7 +337,7 @@ void CPU::opc_05(uint8_t opc){
 }
 void CPU::opc_06(uint8_t opc){
     // LD B, u8
-    h_B = h_MEMORY[h_PC++];
+    h_B = h_MEMORY.readMemory(h_PC++);
     h_CYCLES = 8;
 }
 void CPU::opc_07(uint8_t opc){
@@ -357,11 +357,11 @@ void CPU::opc_08(uint8_t opc){
     // LD (u16), SP
     uint8_t lsb = uint8_t(h_SP & 0xff);
     uint8_t msb = uint8_t((h_SP & 0xff00) >> 8);
-    uint8_t lsb_PC = h_MEMORY[h_PC++];
-    uint8_t msb_PC = h_MEMORY[h_PC++];
+    uint8_t lsb_PC = h_MEMORY.readMemory(h_PC++);
+    uint8_t msb_PC = h_MEMORY.readMemory(h_PC++);
     uint16_t address = uint16_t((msb_PC << 8) | lsb_PC);
-    h_MEMORY[address] = lsb;
-    h_MEMORY[address + 1] = msb;
+    h_MEMORY.writeMemory(address, lsb);
+    h_MEMORY.writeMemory(address, msb);
     h_CYCLES = 20;
 }
 void CPU::opc_09(uint8_t opc){
@@ -375,7 +375,7 @@ void CPU::opc_09(uint8_t opc){
 }
 void CPU::opc_0A(uint8_t opc){
     // LD A, (BC)
-    h_A = h_MEMORY[get_h_BC()];
+    h_A = h_MEMORY.readMemory(h_PC++);
     h_CYCLES = 8;
 }
 void CPU::opc_0B(uint8_t opc){
@@ -393,7 +393,7 @@ void CPU::opc_0D(uint8_t opc){
 }
 void CPU::opc_0E(uint8_t opc){
     // LD C, u8
-    h_C = h_MEMORY[h_PC++];
+    h_C = h_MEMORY.readMemory(h_PC++);
     h_CYCLES = 8;
 }
 void CPU::opc_0F(uint8_t opc){
@@ -418,15 +418,15 @@ void CPU::opc_10(uint8_t opc){
 }
 void CPU::opc_11(uint8_t opc){
     // LD DE, u16
-    uint8_t lsb = h_MEMORY[h_PC++];
-    uint8_t msb = h_MEMORY[h_PC++];
+    uint8_t lsb = h_MEMORY.readMemory(h_PC++);
+    uint8_t msb = h_MEMORY.readMemory(h_PC++);
     uint16_t data = uint16_t((msb << 8) | lsb);
     set_h_DE(data);
     h_CYCLES = 12;
 }
 void CPU::opc_12(uint8_t opc){
     // LD (DE), A
-    h_MEMORY[get_h_DE()] = h_A;
+    h_MEMORY.writeMemory(get_h_DE(), h_A);
     h_CYCLES = 8;
 }
 void CPU::opc_13(uint8_t opc){
@@ -444,7 +444,7 @@ void CPU::opc_15(uint8_t opc){
 }
 void CPU::opc_16(uint8_t opc){
     // LD D, u8
-    h_D = h_MEMORY[h_PC++];
+    h_D = h_MEMORY.readMemory(h_PC++);
     h_CYCLES = 8;
 }
 void CPU::opc_17(uint8_t opc){
@@ -460,7 +460,7 @@ void CPU::opc_17(uint8_t opc){
 }
 void CPU::opc_18(uint8_t opc){
     // JR i8
-    int8_t address = h_MEMORY[h_PC++];
+    int8_t address = h_MEMORY.readMemory(h_PC++);
     h_PC = h_PC + address;
     h_CYCLES = 12;
 }
@@ -474,7 +474,7 @@ void CPU::opc_19(uint8_t opc){
 }
 void CPU::opc_1A(uint8_t opc){
     // LD A, (DE)
-    h_A = h_MEMORY[get_h_DE()];
+    h_A = h_MEMORY.readMemory(h_PC++);
     h_CYCLES = 8;
 }
 void CPU::opc_1B(uint8_t opc){
@@ -493,7 +493,7 @@ void CPU::opc_1D(uint8_t opc){
 }
 void CPU::opc_1E(uint8_t opc){
     // LD E, u8
-    h_E = h_MEMORY[h_PC++];
+    h_E = h_MEMORY.readMemory(h_PC++);
     h_CYCLES = 8;
 }
 void CPU::opc_1F(uint8_t opc){
@@ -511,20 +511,20 @@ void CPU::opc_1F(uint8_t opc){
 void CPU::opc_20(uint8_t opc){
     // JR NZ, i8
     bool condition = !get_flag_Z();
-    int8_t offset = h_MEMORY[h_PC++];
+    int8_t offset = h_MEMORY.readMemory(h_PC++);
     conditionalRelativeJump(condition, offset);
 }
 void CPU::opc_21(uint8_t opc){
     // LD HL, u16
-    uint8_t lsb = h_MEMORY[h_PC++];
-    uint8_t msb = h_MEMORY[h_PC++];
+    uint8_t lsb = h_MEMORY.readMemory(h_PC++);
+    uint8_t msb = h_MEMORY.readMemory(h_PC++);
     uint16_t data = uint16_t((msb << 8) | lsb);
     set_h_HL(data);
     h_CYCLES = 12;
 }
 void CPU::opc_22(uint8_t opc){
     // LD (HL+), A
-    h_MEMORY[get_h_HL()] = h_A;
+    h_MEMORY.writeMemory(get_h_HL(), h_A);
     set_h_HL(get_h_HL() + 1);
     h_CYCLES = 8;
 }
@@ -543,7 +543,7 @@ void CPU::opc_25(uint8_t opc){
 }
 void CPU::opc_26(uint8_t opc){
     // LD H, u8
-    h_H = h_MEMORY[h_PC++];
+    h_H = h_MEMORY.readMemory(h_PC++);
     h_CYCLES = 8;
 }
 void CPU::opc_27(uint8_t opc){
@@ -563,7 +563,7 @@ void CPU::opc_27(uint8_t opc){
 void CPU::opc_28(uint8_t opc){
     // JR Z, i8
     bool condition = get_flag_Z();
-    int8_t offset = h_MEMORY[h_PC++];
+    int8_t offset = h_MEMORY.readMemory(h_PC++);
     conditionalRelativeJump(condition, offset);
 }
 void CPU::opc_29(uint8_t opc){
@@ -576,7 +576,7 @@ void CPU::opc_29(uint8_t opc){
 }
 void CPU::opc_2A(uint8_t opc){
     // LD A, (HL+)
-    h_A = h_MEMORY[get_h_HL()];
+    h_A = h_MEMORY.readMemory(h_PC++);
     set_h_HL(get_h_HL() + 1);
     h_CYCLES = 8;
 }
@@ -595,7 +595,7 @@ void CPU::opc_2D(uint8_t opc){
 }
 void CPU::opc_2E(uint8_t opc){
     // LD L, u8
-    h_L = h_MEMORY[h_PC++];
+    h_L = h_MEMORY.readMemory(h_PC++);
     h_CYCLES = 8;
 }
 void CPU::opc_2F(uint8_t opc){
@@ -610,20 +610,20 @@ void CPU::opc_2F(uint8_t opc){
 void CPU::opc_30(uint8_t opc){
     // JR NC, i8
     bool condition = get_flag_C();
-    int8_t offset = h_MEMORY[h_PC++];
+    int8_t offset = h_MEMORY.readMemory(h_PC++);
     conditionalRelativeJump(condition, offset);
 }
 void CPU::opc_31(uint8_t opc){
     // LD SP, u16
-    uint8_t lsb = h_MEMORY[h_PC++];
-    uint8_t msb = h_MEMORY[h_PC++];
+    uint8_t lsb = h_MEMORY.readMemory(h_PC++);
+    uint8_t msb = h_MEMORY.readMemory(h_PC++);
     uint16_t data = uint16_t((msb << 8) | lsb);
     h_SP = data;
     h_CYCLES = 12;
 }
 void CPU::opc_32(uint8_t opc){
     // LD (HL-), A
-    h_MEMORY[get_h_HL()] = h_A;
+    h_MEMORY.writeMemory(get_h_HL(), h_A);
     set_h_HL(get_h_HL() - 1);
     h_CYCLES = 8;
 }
@@ -634,17 +634,21 @@ void CPU::opc_33(uint8_t opc){
 }
 void CPU::opc_34(uint8_t opc){
     // INC (HL)
-    increment8(h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    increment8(value);
+    h_MEMORY.writeMemory(get_h_HL(), value); // -> might be redundant but i'm not sure if it'll work without this
     h_CYCLES = 12; // Correction
 }
 void CPU::opc_35(uint8_t opc){
     // DEC (HL)
-    decrement8(h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    decrement8(value);
+    h_MEMORY.writeMemory(get_h_HL(), value); // -> might be redundant but i'm not sure if it'll work without this
     h_CYCLES = 12; // Correction
 }
 void CPU::opc_36(uint8_t opc){
     // LD (HL), u8
-    h_MEMORY[get_h_HL()] = h_MEMORY[h_PC++];
+    h_MEMORY.writeMemory(get_h_HL(), h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 12;
 }
 void CPU::opc_37(uint8_t opc){
@@ -657,7 +661,7 @@ void CPU::opc_37(uint8_t opc){
 void CPU::opc_38(uint8_t opc){
     // JR C, s8
     bool condition = get_flag_C();
-    int8_t offset = h_MEMORY[h_PC++];
+    int8_t offset = h_MEMORY.readMemory(h_PC++);
     conditionalRelativeJump(condition, offset);
 }
 void CPU::opc_39(uint8_t opc){
@@ -670,7 +674,7 @@ void CPU::opc_39(uint8_t opc){
 }
 void CPU::opc_3A(uint8_t opc){
     // LD A, (HL-)
-    h_A = h_MEMORY[get_h_HL()];
+    h_A = h_MEMORY.readMemory(h_PC++);
     set_h_HL(get_h_HL() - 1);
     h_CYCLES = 8;
 }
@@ -689,7 +693,7 @@ void CPU::opc_3D(uint8_t opc){
 }
 void CPU::opc_3E(uint8_t opc){
     // LD A, u8
-    h_A = h_MEMORY[h_PC++];
+    h_A = h_MEMORY.readMemory(h_PC++);
     h_CYCLES = 8;
 }
 void CPU::opc_3F(uint8_t opc){
@@ -732,7 +736,7 @@ void CPU::opc_45(uint8_t opc){
 }
 void CPU::opc_46(uint8_t opc){
     // LD B, (HL)
-    h_B = h_MEMORY[get_h_HL()];
+    h_B = h_MEMORY.readMemory(get_h_HL());
     h_CYCLES = 8;
 }
 void CPU::opc_47(uint8_t opc){
@@ -772,7 +776,7 @@ void CPU::opc_4D(uint8_t opc){
 }
 void CPU::opc_4E(uint8_t opc){
     // LD C, (HL)
-    h_C = h_MEMORY[get_h_HL()];
+    h_C = h_MEMORY.readMemory(get_h_HL());
     h_CYCLES = 8;
 }
 void CPU::opc_4F(uint8_t opc){
@@ -813,7 +817,7 @@ void CPU::opc_55(uint8_t opc){
 }
 void CPU::opc_56(uint8_t opc){
     // LD D, (HL)
-    h_D = h_MEMORY[get_h_HL()];
+    h_D = h_MEMORY.readMemory(get_h_HL());
     h_CYCLES = 8;
 }
 void CPU::opc_57(uint8_t opc){
@@ -853,7 +857,7 @@ void CPU::opc_5D(uint8_t opc){
 }
 void CPU::opc_5E(uint8_t opc){
     // LD E, (HL)
-    h_E = h_MEMORY[get_h_HL()];
+    h_E = h_MEMORY.readMemory(get_h_HL());
     h_CYCLES = 8;
 }
 void CPU::opc_5F(uint8_t opc){
@@ -894,7 +898,7 @@ void CPU::opc_65(uint8_t opc){
 }
 void CPU::opc_66(uint8_t opc){
     // LD H, (HL)
-    h_H = h_MEMORY[get_h_HL()];
+    h_H = h_MEMORY.readMemory(get_h_HL());
     h_CYCLES = 8;
 }
 void CPU::opc_67(uint8_t opc){
@@ -934,7 +938,7 @@ void CPU::opc_6D(uint8_t opc){
 }
 void CPU::opc_6E(uint8_t opc){
     // LD L, (HL)
-    h_L = h_MEMORY[get_h_HL()];
+    h_L = h_MEMORY.readMemory(get_h_HL());
     h_CYCLES = 8;
 }
 void CPU::opc_6F(uint8_t opc){
@@ -945,32 +949,32 @@ void CPU::opc_6F(uint8_t opc){
 
 void CPU::opc_70(uint8_t opc){
     // LD (HL), B
-    h_MEMORY[get_h_HL()] = h_B;
+    h_MEMORY.writeMemory(get_h_HL(), h_B);
     h_CYCLES = 8;
 }
 void CPU::opc_71(uint8_t opc){
     // LD (HL), C
-    h_MEMORY[get_h_HL()] = h_B;
+    h_MEMORY.writeMemory(get_h_HL(), h_C);
     h_CYCLES = 8;
 }
 void CPU::opc_72(uint8_t opc){
     // LD (HL), D
-    h_MEMORY[get_h_HL()] = h_D;
+    h_MEMORY.writeMemory(get_h_HL(), h_D);
     h_CYCLES = 8;
 }
 void CPU::opc_73(uint8_t opc){
     // LD (HL), E
-    h_MEMORY[get_h_HL()] = h_E;
+    h_MEMORY.writeMemory(get_h_HL(), h_E);
     h_CYCLES = 8;
 }
 void CPU::opc_74(uint8_t opc){
     // LD (HL), H
-    h_MEMORY[get_h_HL()] = h_H;
+    h_MEMORY.writeMemory(get_h_HL(), h_H);
     h_CYCLES = 8;
 }
 void CPU::opc_75(uint8_t opc){
     // LD (HL), L
-    h_MEMORY[get_h_HL()] = h_L;
+    h_MEMORY.writeMemory(get_h_HL(), h_L);
     h_CYCLES = 8;
 }
 void CPU::opc_76(uint8_t opc){
@@ -981,7 +985,7 @@ void CPU::opc_76(uint8_t opc){
 }
 void CPU::opc_77(uint8_t opc){
     // LD (HL), A
-    h_MEMORY[get_h_HL()] = h_B;
+    h_MEMORY.writeMemory(get_h_HL(), h_A);
     h_CYCLES = 8;
 }
 void CPU::opc_78(uint8_t opc){
@@ -1016,7 +1020,7 @@ void CPU::opc_7D(uint8_t opc){
 }
 void CPU::opc_7E(uint8_t opc){
     // LD A, (HL)
-    h_A = h_MEMORY[get_h_HL()];
+    h_A = h_MEMORY.readMemory(get_h_HL());
     h_CYCLES = 8;
 }
 void CPU::opc_7F(uint8_t opc){
@@ -1051,7 +1055,7 @@ void CPU::opc_85(uint8_t opc){
 }
 void CPU::opc_86(uint8_t opc){
     // ADD A, (HL)
-    add8(h_A, h_MEMORY[get_h_HL()]);
+    add8(h_A, h_MEMORY.readMemory(get_h_HL()));
     h_CYCLES = 8;
 }
 void CPU::opc_87(uint8_t opc){
@@ -1084,7 +1088,7 @@ void CPU::opc_8D(uint8_t opc){
 }
 void CPU::opc_8E(uint8_t opc){
     // ADC A, (HL)
-    adc8(h_A, h_MEMORY[get_h_HL()]);
+    adc8(h_A, h_MEMORY.readMemory(get_h_HL()));
     h_CYCLES = 8;
 }
 void CPU::opc_8F(uint8_t opc){
@@ -1118,7 +1122,7 @@ void CPU::opc_95(uint8_t opc){
 }
 void CPU::opc_96(uint8_t opc){
     // SUB A, (HL)
-    sub8(h_A, h_MEMORY[get_h_HL()]);
+    sub8(h_A, h_MEMORY.readMemory(get_h_HL()));
     h_CYCLES = 8;
 }
 void CPU::opc_97(uint8_t opc){
@@ -1151,7 +1155,7 @@ void CPU::opc_9D(uint8_t opc){
 }
 void CPU::opc_9E(uint8_t opc){
     // SBC A, (HL)
-    sbc8(h_A, h_MEMORY[get_h_HL()]);
+    sbc8(h_A, h_MEMORY.readMemory(get_h_HL()));
     h_CYCLES = 8;
 }
 void CPU::opc_9F(uint8_t opc){
@@ -1185,7 +1189,7 @@ void CPU::opc_A5(uint8_t opc){
 }
 void CPU::opc_A6(uint8_t opc){
     // AND A, (HL)
-    and8(h_A, h_MEMORY[get_h_HL()]);
+    and8(h_A, h_MEMORY.readMemory(get_h_HL()));
     h_CYCLES = 8;
 }
 void CPU::opc_A7(uint8_t opc){
@@ -1218,7 +1222,7 @@ void CPU::opc_AD(uint8_t opc){
 }
 void CPU::opc_AE(uint8_t opc){
     // XOR A, (HL)
-    xor8(h_A, h_MEMORY[get_h_HL()]);
+    xor8(h_A, h_MEMORY.readMemory(get_h_HL()));
     h_CYCLES = 8;
 }
 void CPU::opc_AF(uint8_t opc){
@@ -1252,7 +1256,7 @@ void CPU::opc_B5(uint8_t opc){
 }
 void CPU::opc_B6(uint8_t opc){
     // OR A, (HL)
-    or8(h_A, h_MEMORY[get_h_HL()]);
+    or8(h_A, h_MEMORY.readMemory(get_h_HL()));
     h_CYCLES = 8;
 }
 void CPU::opc_B7(uint8_t opc){
@@ -1285,7 +1289,7 @@ void CPU::opc_BD(uint8_t opc){
 }
 void CPU::opc_BE(uint8_t opc){
     // CP A, (HL)
-    cp8(h_A, h_MEMORY[get_h_HL()]);
+    cp8(h_A, h_MEMORY.readMemory(get_h_HL()));
 }
 void CPU::opc_BF(uint8_t opc){
     // CP A, A
@@ -1298,8 +1302,8 @@ void CPU::opc_C0(uint8_t opc){
 }
 void CPU::opc_C1(uint8_t opc){
     // POP BC
-    uint8_t lsb = h_MEMORY[h_SP++];
-    uint8_t msb = h_MEMORY[h_SP++];
+    uint8_t lsb = h_MEMORY.readMemory(h_SP++);
+    uint8_t msb = h_MEMORY.readMemory(h_SP++);
     set_h_BC(uint16_t((msb << 8) | lsb));
     h_CYCLES = 12;
 }
@@ -1317,13 +1321,13 @@ void CPU::opc_C4(uint8_t opc){
 }
 void CPU::opc_C5(uint8_t opc){
     // PUSH BC
-    h_MEMORY[--h_SP] = uint8_t((get_h_BC() & 0xff00) >> 8);
-    h_MEMORY[--h_SP] = uint8_t((get_h_BC() & 0x00ff));
+    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_BC() & 0xff00) >> 8));
+    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_BC() & 0x00ff)));
     h_CYCLES = 16;
 }
 void CPU::opc_C6(uint8_t opc){
     // ADD A, u8
-    add8(h_A, h_MEMORY[h_PC++]);
+    add8(h_A, h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 8;
 }
 void CPU::opc_C7(uint8_t opc){
@@ -1357,7 +1361,7 @@ void CPU::opc_CD(uint8_t opc){
 }
 void CPU::opc_CE(uint8_t opc){
     // ADC A, u8
-    adc8(h_A, h_MEMORY[h_PC++]);
+    adc8(h_A, h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 8;
 }
 void CPU::opc_CF(uint8_t opc){
@@ -1371,8 +1375,8 @@ void CPU::opc_D0(uint8_t opc){
 }
 void CPU::opc_D1(uint8_t opc){
     // POP DE
-    uint8_t lsb = h_MEMORY[h_SP++];
-    uint8_t msb = h_MEMORY[h_SP++];
+    uint8_t lsb = h_MEMORY.readMemory(h_SP++);
+    uint8_t msb = h_MEMORY.readMemory(h_SP++);
     set_h_DE(uint16_t((msb << 8) | lsb));
     h_CYCLES = 12;
 }
@@ -1387,13 +1391,13 @@ void CPU::opc_D4(uint8_t opc){
 }
 void CPU::opc_D5(uint8_t opc){
     // PUSH DE
-    h_MEMORY[--h_SP] = uint8_t((get_h_DE() & 0xff00) >> 8);
-    h_MEMORY[--h_SP] = uint8_t((get_h_DE() & 0x00ff));
+    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_DE() & 0xff00) >> 8));
+    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_DE() & 0x00ff)));
     h_CYCLES = 16;
 }
 void CPU::opc_D6(uint8_t opc){
     // SUB, A, u8
-    sub8(h_A, h_MEMORY[h_PC++]);
+    sub8(h_A, h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 8;
 }
 void CPU::opc_D7(uint8_t opc){
@@ -1420,7 +1424,7 @@ void CPU::opc_DC(uint8_t opc){
 void CPU::opc_DD(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
 void CPU::opc_DE(uint8_t opc){
     // SBC A, u8
-    sbc8(h_A, h_MEMORY[h_PC++]);
+    sbc8(h_A, h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 8;
 }
 void CPU::opc_DF(uint8_t opc){
@@ -1430,32 +1434,32 @@ void CPU::opc_DF(uint8_t opc){
 
 void CPU::opc_E0(uint8_t opc){
     // LD (FF00 + u8), A
-    h_MEMORY[0xFF00 + h_MEMORY[h_PC++]] = h_A;
+    h_MEMORY.writeMemory(0xFF00 + h_MEMORY.readMemory(h_PC++), h_A);
     h_CYCLES = 12;
 }
 void CPU::opc_E1(uint8_t opc){
     // POP HL
-    uint8_t lsb = h_MEMORY[h_SP++];
-    uint8_t msb = h_MEMORY[h_SP++];
+    uint8_t lsb = h_MEMORY.readMemory(h_SP++);
+    uint8_t msb = h_MEMORY.readMemory(h_SP++);
     set_h_HL(uint16_t((msb << 8) | lsb));
     h_CYCLES = 12;
 }
 void CPU::opc_E2(uint8_t opc){
     // LD (FF00 + C), A
-    h_MEMORY[0xFF00 + uint16_t(get_flag_C())] = h_A;
+    h_MEMORY.writeMemory(0xFF00 + uint16_t(get_flag_C()), h_A);
     h_CYCLES = 8;
 }
 void CPU::opc_E3(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
 void CPU::opc_E4(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
 void CPU::opc_E5(uint8_t opc){
     // PUSH HL
-    h_MEMORY[--h_SP] = uint8_t((get_h_DE() & 0xff00) >> 8);
-    h_MEMORY[--h_SP] = uint8_t((get_h_DE() & 0x00ff));
+    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_DE() & 0xff00) >> 8));
+    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_DE() & 0x00ff)));
     h_CYCLES = 16;
 }
 void CPU::opc_E6(uint8_t opc){
     // AND A, u8
-    and8(h_A, h_MEMORY[h_PC++]);
+    and8(h_A, h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 8;
 }
 void CPU::opc_E7(uint8_t opc){
@@ -1466,9 +1470,9 @@ void CPU::opc_E8(uint8_t opc){
     // ADD SP, i8 -> double check this one
     set_flag_N(false);
     set_flag_Z(false);
-    set_flag_H((h_SP & 0xF + int8_t(h_MEMORY[h_PC]) & 0xF) & 0x10 != 0);
-    set_flag_C((h_SP & 0xFF + int8_t(h_MEMORY[h_PC])) & 0x100 != 0);
-    h_SP += int8_t(h_MEMORY[h_PC++]);
+    set_flag_H((h_SP & 0xF + int8_t(h_MEMORY.readMemory(h_PC)) & 0xF) & 0x10 != 0);
+    set_flag_C((h_SP & 0xFF + int8_t(h_MEMORY.readMemory(h_PC))) & 0x100 != 0);
+    h_SP += int8_t(h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 16;
 }
 void CPU::opc_E9(uint8_t opc){
@@ -1478,10 +1482,10 @@ void CPU::opc_E9(uint8_t opc){
 }
 void CPU::opc_EA(uint8_t opc){
     // LD (u16), A
-    uint8_t lsb_PC = h_MEMORY[h_PC++];
-    uint8_t msb_PC = h_MEMORY[h_PC++];
+    uint8_t lsb_PC = h_MEMORY.readMemory(h_PC++);
+    uint8_t msb_PC = h_MEMORY.readMemory(h_PC++);
     uint16_t address = uint16_t((msb_PC << 8) | lsb_PC);
-    h_MEMORY[address] = h_A;
+    h_MEMORY.writeMemory(address, h_A);
     h_CYCLES = 16;
 }
 void CPU::opc_EB(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
@@ -1489,7 +1493,7 @@ void CPU::opc_EC(uint8_t opc){} // -> empty func (I should add error if empty fu
 void CPU::opc_ED(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
 void CPU::opc_EE(uint8_t opc){
     // XOR A, u8
-    xor8(h_A, h_MEMORY[h_PC++]);
+    xor8(h_A, h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 8;
 }
 void CPU::opc_EF(uint8_t opc){
@@ -1499,19 +1503,19 @@ void CPU::opc_EF(uint8_t opc){
 
 void CPU::opc_F0(uint8_t opc){
     // LD A, (FF00 + u8)
-    h_A = h_MEMORY[0xFF00 + h_MEMORY[h_PC++]];
+    h_A = h_MEMORY.readMemory(0xFF00 + h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 12;
 }
 void CPU::opc_F1(uint8_t opc){
     // POP AF
-    uint8_t lsb = h_MEMORY[h_SP++];
-    uint8_t msb = h_MEMORY[h_SP++];
+    uint8_t lsb = h_MEMORY.readMemory(h_SP++);
+    uint8_t msb = h_MEMORY.readMemory(h_SP++);
     set_h_AF(uint16_t((msb << 8) | lsb));
     h_CYCLES = 12;
 }
 void CPU::opc_F2(uint8_t opc){
     // LD A, (FF00 + C)
-    h_A = h_MEMORY[0xFF00 + uint16_t(get_flag_C())];
+    h_A = h_MEMORY.readMemory(0xFF00 + uint16_t(get_flag_C()));
     h_CYCLES = 8;
 }
 void CPU::opc_F3(uint8_t opc){
@@ -1522,13 +1526,13 @@ void CPU::opc_F3(uint8_t opc){
 void CPU::opc_F4(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
 void CPU::opc_F5(uint8_t opc){
     // PUSH AF
-    h_MEMORY[--h_SP] = uint8_t((get_h_AF() & 0xff00) >> 8);
-    h_MEMORY[--h_SP] = uint8_t((get_h_AF() & 0x00ff));
+    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_AF() & 0xff00) >> 8));
+    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_AF() & 0x00ff)));
     h_CYCLES = 16;
 }
 void CPU::opc_F6(uint8_t opc){
     // OR A, u8
-    or8(h_A, h_MEMORY[h_PC++]);
+    or8(h_A, h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 8;
 }
 void CPU::opc_F7(uint8_t opc){
@@ -1539,9 +1543,9 @@ void CPU::opc_F8(uint8_t opc){
     // LD HL, SP+i8 -> double check  this too
     set_flag_N(false);
     set_flag_Z(false);
-    set_flag_H((h_SP & 0xF + int8_t(h_MEMORY[h_PC]) & 0xF) & 0x10 != 0);
-    set_flag_C((h_SP & 0xFF + int8_t(h_MEMORY[h_PC])) & 0x100 != 0);
-    set_h_HL(h_SP + int8_t(h_MEMORY[h_PC++]));
+    set_flag_H((h_SP & 0x0F + int8_t(h_MEMORY.readMemory(h_PC)) & 0xF) & 0x10 != 0);
+    set_flag_C((h_SP & 0xFF + int8_t(h_MEMORY.readMemory(h_PC))) & 0x100 != 0);
+    set_h_HL(h_SP + int8_t(h_MEMORY.readMemory(h_PC++)));
     h_CYCLES = 12;
 }
 void CPU::opc_F9(uint8_t opc){
@@ -1551,10 +1555,10 @@ void CPU::opc_F9(uint8_t opc){
 }
 void CPU::opc_FA(uint8_t opc){
     // LD A, (u16)
-    uint8_t lsb_PC = h_MEMORY[h_PC++];
-    uint8_t msb_PC = h_MEMORY[h_PC++];
+    uint8_t lsb_PC = h_MEMORY.readMemory(h_PC++);
+    uint8_t msb_PC = h_MEMORY.readMemory(h_PC++);
     uint16_t address = uint16_t((msb_PC << 8) | lsb_PC);
-    h_A = h_MEMORY[address];
+    h_A = h_MEMORY.readMemory(address);
     h_CYCLES = 16;
 }
 void CPU::opc_FB(uint8_t opc){
@@ -1568,7 +1572,7 @@ void CPU::opc_FC(uint8_t opc){} // -> empty func (I should add error if empty fu
 void CPU::opc_FD(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
 void CPU::opc_FE(uint8_t opc){
     // CP A, u8
-    cp8(h_A, h_MEMORY[h_PC++]);
+    cp8(h_A, h_MEMORY.readMemory(h_PC++));
     h_CYCLES = 8;
 }
 void CPU::opc_FF(uint8_t opc){
@@ -1606,7 +1610,9 @@ void CPU::opc_CB_05(uint8_t opc){
 }
 void CPU::opc_CB_06(uint8_t opc){
     // RLC (HL)
-    rlc8(h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    rlc8(value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_07(uint8_t opc){
@@ -1639,7 +1645,9 @@ void CPU::opc_CB_0D(uint8_t opc){
 }
 void CPU::opc_CB_0E(uint8_t opc){
     // RRC (HL)
-    rrc8(h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    rrc8(value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_0F(uint8_t opc){
@@ -1673,7 +1681,9 @@ void CPU::opc_CB_15(uint8_t opc){
 }
 void CPU::opc_CB_16(uint8_t opc){
     // RL (HL)
-    rl8(h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    rl8(value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_17(uint8_t opc){
@@ -1706,7 +1716,9 @@ void CPU::opc_CB_1D(uint8_t opc){
 }
 void CPU::opc_CB_1E(uint8_t opc){
     // RR (HL)
-    rr8(h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    rr8(value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_1F(uint8_t opc){
@@ -1740,7 +1752,9 @@ void CPU::opc_CB_25(uint8_t opc){
 }
 void CPU::opc_CB_26(uint8_t opc){
     // SLA (HL)
-    sla8(h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    sla8(value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_27(uint8_t opc){
@@ -1773,7 +1787,9 @@ void CPU::opc_CB_2D(uint8_t opc){
 }
 void CPU::opc_CB_2E(uint8_t opc){
     // SRA (HL)
-    sra8(h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    sra8(value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_2F(uint8_t opc){
@@ -1807,7 +1823,9 @@ void CPU::opc_CB_35(uint8_t opc){
 }
 void CPU::opc_CB_36(uint8_t opc){
     // SWAP (HL)
-    swap(h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    swap(value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_37(uint8_t opc){
@@ -1840,7 +1858,9 @@ void CPU::opc_CB_3D(uint8_t opc){
 }
 void CPU::opc_CB_3E(uint8_t opc){
     // SRL (HL)
-    srl8(h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    srl8(value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_3F(uint8_t opc){
@@ -1874,7 +1894,9 @@ void CPU::opc_CB_45(uint8_t opc){
 }
 void CPU::opc_CB_46(uint8_t opc){
     // BIT 0, (HL)
-    bit8(0, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    bit8(0, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_47(uint8_t opc){
@@ -1907,7 +1929,9 @@ void CPU::opc_CB_4D(uint8_t opc){
 }
 void CPU::opc_CB_4E(uint8_t opc){
     // BIT 1, (HL)
-    bit8(1, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    bit8(1, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_4F(uint8_t opc){
@@ -1941,7 +1965,9 @@ void CPU::opc_CB_55(uint8_t opc){
 }
 void CPU::opc_CB_56(uint8_t opc){
     // BIT 2, (HL)
-    bit8(2, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    bit8(2, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_57(uint8_t opc){
@@ -1974,7 +2000,9 @@ void CPU::opc_CB_5D(uint8_t opc){
 }
 void CPU::opc_CB_5E(uint8_t opc){
     // BIT 3, (HL)
-    bit8(3, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    bit8(3, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_5F(uint8_t opc){
@@ -2008,7 +2036,9 @@ void CPU::opc_CB_65(uint8_t opc){
 }
 void CPU::opc_CB_66(uint8_t opc){
     // BIT 4, (HL)
-    bit8(4, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    bit8(4, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_67(uint8_t opc){
@@ -2041,7 +2071,9 @@ void CPU::opc_CB_6D(uint8_t opc){
 }
 void CPU::opc_CB_6E(uint8_t opc){
     // BIT 5, (HL)
-    bit8(5, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    bit8(5, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_6F(uint8_t opc){
@@ -2075,7 +2107,9 @@ void CPU::opc_CB_75(uint8_t opc){
 }
 void CPU::opc_CB_76(uint8_t opc){
     // BIT 6, (HL)
-    bit8(6, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    bit8(6, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_77(uint8_t opc){
@@ -2108,7 +2142,9 @@ void CPU::opc_CB_7D(uint8_t opc){
 }
 void CPU::opc_CB_7E(uint8_t opc){
     // BIT 7, (HL)
-    bit8(7, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    bit8(7, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_7F(uint8_t opc){
@@ -2142,7 +2178,9 @@ void CPU::opc_CB_85(uint8_t opc){
 }
 void CPU::opc_CB_86(uint8_t opc){
     // RES 0, (HL)
-    res8(0, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    res8(0, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_87(uint8_t opc){
@@ -2175,7 +2213,9 @@ void CPU::opc_CB_8D(uint8_t opc){
 }
 void CPU::opc_CB_8E(uint8_t opc){
     // RES 1, (HL)
-    res8(1, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    res8(1, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_8F(uint8_t opc){
@@ -2209,7 +2249,9 @@ void CPU::opc_CB_95(uint8_t opc){
 }
 void CPU::opc_CB_96(uint8_t opc){
     // RES 2, (HL)
-    res8(2, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    res8(2, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_97(uint8_t opc){
@@ -2242,7 +2284,9 @@ void CPU::opc_CB_9D(uint8_t opc){
 }
 void CPU::opc_CB_9E(uint8_t opc){
     // RES 3, (HL)
-    res8(3, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    res8(3, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_9F(uint8_t opc){
@@ -2276,7 +2320,9 @@ void CPU::opc_CB_A5(uint8_t opc){
 }
 void CPU::opc_CB_A6(uint8_t opc){
     // RES 4, (HL)
-    res8(4, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    res8(4, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_A7(uint8_t opc){
@@ -2309,7 +2355,9 @@ void CPU::opc_CB_AD(uint8_t opc){
 }
 void CPU::opc_CB_AE(uint8_t opc){
     // RES 5, (HL)
-    res8(5, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    res8(5, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_AF(uint8_t opc){
@@ -2343,7 +2391,9 @@ void CPU::opc_CB_B5(uint8_t opc){
 }
 void CPU::opc_CB_B6(uint8_t opc){
     // RES 6, (HL)
-    res8(6, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    res8(6, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_B7(uint8_t opc){
@@ -2376,7 +2426,9 @@ void CPU::opc_CB_BD(uint8_t opc){
 }
 void CPU::opc_CB_BE(uint8_t opc){
     // RES 7, (HL)
-    res8(7, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    res8(7, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_BF(uint8_t opc){
@@ -2410,7 +2462,9 @@ void CPU::opc_CB_C5(uint8_t opc){
 }
 void CPU::opc_CB_C6(uint8_t opc){
     // SET 0, (HL)
-    set8(0, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    set8(0, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_C7(uint8_t opc){
@@ -2443,7 +2497,9 @@ void CPU::opc_CB_CD(uint8_t opc){
 }
 void CPU::opc_CB_CE(uint8_t opc){
     // SET 1, (HL)
-    set8(1, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    set8(1, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_CF(uint8_t opc){
@@ -2477,7 +2533,9 @@ void CPU::opc_CB_D5(uint8_t opc){
 }
 void CPU::opc_CB_D6(uint8_t opc){
     // SET 2, (HL)
-    set8(2, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    set8(2, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_D7(uint8_t opc){
@@ -2510,7 +2568,9 @@ void CPU::opc_CB_DD(uint8_t opc){
 }
 void CPU::opc_CB_DE(uint8_t opc){
     // SET 3, (HL)
-    set8(3, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    set8(3, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_DF(uint8_t opc){
@@ -2544,7 +2604,9 @@ void CPU::opc_CB_E5(uint8_t opc){
 }
 void CPU::opc_CB_E6(uint8_t opc){
     // SET 4, (HL)
-    set8(4, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    set8(4, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_E7(uint8_t opc){
@@ -2577,7 +2639,9 @@ void CPU::opc_CB_ED(uint8_t opc){
 }
 void CPU::opc_CB_EE(uint8_t opc){
     // SET 5, (HL)
-    set8(5, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    set8(5, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_EF(uint8_t opc){
@@ -2611,7 +2675,9 @@ void CPU::opc_CB_F5(uint8_t opc){
 }
 void CPU::opc_CB_F6(uint8_t opc){
     // SET 6, (HL)
-    set8(6, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    set8(6, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_F7(uint8_t opc){
@@ -2644,7 +2710,9 @@ void CPU::opc_CB_FD(uint8_t opc){
 }
 void CPU::opc_CB_FE(uint8_t opc){
     // SET 7, (HL)
-    set8(7, h_MEMORY[get_h_HL()]);
+    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    set8(7, value);
+    h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_FF(uint8_t opc){

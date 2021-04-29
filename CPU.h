@@ -3,12 +3,14 @@
 #include <iostream>
 #include <vector>
 #include <string.h>
+#include "Memory.h"
 
 class CPU{
 
     typedef void (CPU::*opcode_function)(uint8_t);
 
     public:
+
         CPU();
         ~CPU();
         
@@ -22,7 +24,7 @@ class CPU{
 
     private:
 
-        uint8_t h_MEMORY[0xFFFF];    // 16 bit address bus
+        Memory h_MEMORY;
 
         uint8_t h_SCREENDATA[160][144][4];  // 160x144 Monitor with 4 gray shades
 
@@ -35,8 +37,8 @@ class CPU{
 
         bool h_IME = false;   // IME Flag (interrupt master enable)
         bool i_scheduled = false;   // For EI opcode -> Enable interrupts at the next machine cycle
-        uint16_t h_IE;    // IE Register
-        uint16_t h_IF;    // IF Flag
+        uint8_t h_IE = h_MEMORY.h_MEMORY[0xFFFF];    // IE Register
+        uint8_t h_IF = h_MEMORY.h_MEMORY[0xFF0F];    // IF Flag
 
         /* 16-bit Register Functions */
 
