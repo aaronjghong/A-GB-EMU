@@ -24,7 +24,7 @@ class CPU{
 
     private:
 
-        Memory h_MEMORY;
+        Memory h_MEMORY;    // CPU's Memory
 
         uint8_t h_SCREENDATA[160][144][4];  // 160x144 Monitor with 4 gray shades
 
@@ -37,8 +37,8 @@ class CPU{
 
         bool h_IME = false;   // IME Flag (interrupt master enable)
         bool i_scheduled = false;   // For EI opcode -> Enable interrupts at the next machine cycle
-        uint8_t h_IE = h_MEMORY.h_MEMORY[0xFFFF];    // IE Register
-        uint8_t h_IF = h_MEMORY.h_MEMORY[0xFF0F];    // IF Flag
+        uint8_t h_IE = h_MEMORY.memory[0xFFFF];    // IE Register
+        uint8_t h_IF = h_MEMORY.memory[0xFF0F];    // IF Flag
 
         /* 16-bit Register Functions */
 
