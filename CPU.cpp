@@ -14,7 +14,7 @@ uint8_t CPU::getOpcode(){
 }
 
 
-void CPU::executeOpcode(uint8_t opc, bool CB_mode = false){
+void CPU::executeOpcode(uint8_t opc, bool CB_mode /*= false*/){
 
     // CB mode should be true when executeOpcode is called from opc_CB
 
@@ -193,6 +193,112 @@ void CPU::decrement8(uint8_t &target){
     set_flag_H(((target & 0x10) - 1) & 0x10 == 0);
     target = value;
     h_CYCLES = 4; // Set to 12 seperately for edge cases
+}
+
+/////////////////////////////////////////
+/* CB-Prefixed Opcode Helper Functions */
+/////////////////////////////////////////
+
+void CPU::rlc8(uint8_t &target){
+    bool carry = false;
+    if((target & 0b10000000) != 0) carry = true;
+    set_flag_C(carry);
+    if(carry) target |= 0b00000001;
+    set_flag_Z(target == 0);
+    set_flag_H(false);
+    set_flag_N(false);
+    h_CYCLES = 8; // Set 16 seperately for edge cases
+}
+
+void CPU::rl8(uint8_t &target){
+    uint8_t bit0 = uint8_t(get_flag_C());
+    set_flag_C((target & 0b10000000) != 0);
+    target = (target << 1) | bit0;
+    set_flag_Z(target == 0);
+    set_flag_H(false);
+    set_flag_N(false);
+    h_CYCLES = 8; // Set 16 seperately for edge cases
+}
+
+void CPU::rrc8(uint8_t &target){
+    bool carry = false;
+    if((target & 0b00000001) != 0) carry = true;
+    set_flag_C(carry);
+    target >>= 1;
+    if(carry) target |= 0b10000000;
+    set_flag_Z(target == 0);
+    set_flag_H(false);
+    set_flag_N(false);
+    h_CYCLES = 8; // Set 16 seperately for edge cases
+}
+
+void CPU::rr8(uint8_t &target){
+    uint8_t bit7 = uint8_t(get_flag_C()) << 7;
+    set_flag_C((target & 0b00000001) != 0);
+    target = (target >> 1) | bit7;
+    set_flag_Z(target == 0);
+    set_flag_H(false);
+    set_flag_N(false);
+    h_CYCLES = 8; // Set 16 seperately for edge cases
+}
+
+void CPU::sla8(uint8_t &target){
+    set_flag_C((target & 0b10000000) != 0);
+    target <<= 1;
+    set_flag_Z(target == 0);
+    set_flag_N(false);
+    set_flag_H(false);
+    h_CYCLES = 8; // Set 16 seperately for edge cases
+}
+
+void CPU::sra8(uint8_t &target){
+    uint8_t bit7 = target & 0b10000000;
+    set_flag_C((target & 0b00000001) != 0);
+    target = (target >> 1) | bit7;
+    set_flag_Z(target == 0);
+    set_flag_N(false);
+    set_flag_H(false);
+    h_CYCLES = 8; // Set 16 seperately for edge cases
+}
+
+void CPU::swap(uint8_t &target){
+    uint8_t upper = target & 0xf0;
+    uint8_t lower = target & 0x0f;
+    target = (lower << 8) | upper;
+    set_flag_Z(target == 0);
+    set_flag_N(false);
+    set_flag_N(false);
+    set_flag_C(false);
+    h_CYCLES = 8; // Set 16 seperately for edge cases
+}
+
+void CPU::srl8(uint8_t &target){
+    set_flag_C((target & 0b00000001) != 0);
+    target >>= 1;
+    set_flag_Z(target == 0);
+    set_flag_N(false);
+    set_flag_H(false);
+    h_CYCLES = 8; // Set 16 seperately for edge cases
+}
+
+void CPU::bit8(uint8_t bit, uint8_t target){
+    uint8_t mask = (1 << bit);
+    set_flag_Z((target & mask) == 0); // Gets the complement of the bit
+    set_flag_H(true);
+    set_flag_N(false);
+    h_CYCLES = 8; // Set 16 seperately for edge cases
+}
+
+void CPU::res8(uint8_t bit, uint8_t &target){
+    uint8_t mask = (1 << bit) ^ 0xff; 
+    target &= mask;
+    h_CYCLES = 8; // Set 16 seperately for edge cases
+}
+
+void CPU::set8(uint8_t bit, uint8_t &target){
+    uint8_t mask = 1 << bit;
+    target |= mask;
+    h_CYCLES = 8; // Set 16 seperately for edge cases
 }
 
 ////////////////////////////////////////
@@ -442,7 +548,7 @@ void CPU::opc_26(uint8_t opc){
 }
 void CPU::opc_27(uint8_t opc){
     // DAA
-    if(!get_flag_N){ // Addition occurred 
+    if(!get_flag_N()){ // Addition occurred 
         if((h_A & 0xF) > 0x9 || get_flag_H()) h_A += 0x6;
         if(h_A > 0x99 || get_flag_C()) {h_A += 0x60; set_flag_C(true);}
     }
@@ -550,7 +656,7 @@ void CPU::opc_37(uint8_t opc){
 }
 void CPU::opc_38(uint8_t opc){
     // JR C, s8
-    bool condition = get_flag_C;
+    bool condition = get_flag_C();
     int8_t offset = h_MEMORY[h_PC++];
     conditionalRelativeJump(condition, offset);
 }
@@ -1243,7 +1349,7 @@ void CPU::opc_CB(uint8_t opc){
 }
 void CPU::opc_CC(uint8_t opc){
     // CALL Z, u16
-    conditionalCall(get_flag_Z);
+    conditionalCall(get_flag_Z());
 }
 void CPU::opc_CD(uint8_t opc){
     // CALL u16
@@ -1272,12 +1378,12 @@ void CPU::opc_D1(uint8_t opc){
 }
 void CPU::opc_D2(uint8_t opc){
     // JP NC, u16
-    conditionalPositionJump(!get_flag_C);
+    conditionalPositionJump(!get_flag_C());
 }
 void CPU::opc_D3(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
 void CPU::opc_D4(uint8_t opc){
     // CALL NC, u16
-    conditionalCall(!get_flag_C);
+    conditionalCall(!get_flag_C());
 }
 void CPU::opc_D5(uint8_t opc){
     // PUSH DE
@@ -1474,274 +1580,1074 @@ void CPU::opc_FF(uint8_t opc){
 /* CB Prefixed Opcode Definitions */
 ////////////////////////////////////
 
-void CPU::opc_CB_00(uint8_t opc){}
-void CPU::opc_CB_01(uint8_t opc){}
-void CPU::opc_CB_02(uint8_t opc){}
-void CPU::opc_CB_03(uint8_t opc){}
-void CPU::opc_CB_04(uint8_t opc){}
-void CPU::opc_CB_05(uint8_t opc){}
-void CPU::opc_CB_06(uint8_t opc){}
-void CPU::opc_CB_07(uint8_t opc){}
-void CPU::opc_CB_08(uint8_t opc){}
-void CPU::opc_CB_09(uint8_t opc){}
-void CPU::opc_CB_0A(uint8_t opc){}
-void CPU::opc_CB_0B(uint8_t opc){}
-void CPU::opc_CB_0C(uint8_t opc){}
-void CPU::opc_CB_0D(uint8_t opc){}
-void CPU::opc_CB_0E(uint8_t opc){}
-void CPU::opc_CB_0F(uint8_t opc){}
+void CPU::opc_CB_00(uint8_t opc){
+    // RLC B
+    rlc8(h_B);
+}
+void CPU::opc_CB_01(uint8_t opc){
+    // RLC C
+    rlc8(h_C);
+}
+void CPU::opc_CB_02(uint8_t opc){
+    // RLC D
+    rlc8(h_D);
+}
+void CPU::opc_CB_03(uint8_t opc){
+    // RLC E
+    rlc8(h_E);
+}
+void CPU::opc_CB_04(uint8_t opc){
+    // RLC H
+    rlc8(h_H);
+}
+void CPU::opc_CB_05(uint8_t opc){
+    // RLC L
+    rlc8(h_L);
+}
+void CPU::opc_CB_06(uint8_t opc){
+    // RLC (HL)
+    rlc8(h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_07(uint8_t opc){
+    // RLC A
+    rlc8(h_A);
+}
+void CPU::opc_CB_08(uint8_t opc){
+    // RRC B
+    rrc8(h_B);
+}
+void CPU::opc_CB_09(uint8_t opc){
+    // RRC C
+    rrc8(h_C);
+}
+void CPU::opc_CB_0A(uint8_t opc){
+    // RRC D
+    rrc8(h_D);
+}
+void CPU::opc_CB_0B(uint8_t opc){
+    // RRC E
+    rrc8(h_E);
+}
+void CPU::opc_CB_0C(uint8_t opc){
+    // RRC H
+    rrc8(h_H);
+}
+void CPU::opc_CB_0D(uint8_t opc){
+    // RRC L
+    rrc8(h_L);
+}
+void CPU::opc_CB_0E(uint8_t opc){
+    // RRC (HL)
+    rrc8(h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_0F(uint8_t opc){
+    // RRC A
+    rrc8(h_A);
+}
 
-void CPU::opc_CB_10(uint8_t opc){}
-void CPU::opc_CB_11(uint8_t opc){}
-void CPU::opc_CB_12(uint8_t opc){}
-void CPU::opc_CB_13(uint8_t opc){}
-void CPU::opc_CB_14(uint8_t opc){}
-void CPU::opc_CB_15(uint8_t opc){}
-void CPU::opc_CB_16(uint8_t opc){}
-void CPU::opc_CB_17(uint8_t opc){}
-void CPU::opc_CB_18(uint8_t opc){}
-void CPU::opc_CB_19(uint8_t opc){}
-void CPU::opc_CB_1A(uint8_t opc){}
-void CPU::opc_CB_1B(uint8_t opc){}
-void CPU::opc_CB_1C(uint8_t opc){}
-void CPU::opc_CB_1D(uint8_t opc){}
-void CPU::opc_CB_1E(uint8_t opc){}
-void CPU::opc_CB_1F(uint8_t opc){}
+void CPU::opc_CB_10(uint8_t opc){
+    // RL B
+    rl8(h_B);
+}
+void CPU::opc_CB_11(uint8_t opc){
+    // RL C
+    rl8(h_C);
+}
+void CPU::opc_CB_12(uint8_t opc){
+    // RL D
+    rl8(h_D);
+}
+void CPU::opc_CB_13(uint8_t opc){
+    // RL E
+    rl8(h_E);
+}
+void CPU::opc_CB_14(uint8_t opc){
+    // RL H
+    rl8(h_H);
+}
+void CPU::opc_CB_15(uint8_t opc){
+    // RL L
+    rl8(h_L);
+}
+void CPU::opc_CB_16(uint8_t opc){
+    // RL (HL)
+    rl8(h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_17(uint8_t opc){
+    // RL A
+    rl8(h_A);
+}
+void CPU::opc_CB_18(uint8_t opc){
+    // RR B
+    rr8(h_B);
+}
+void CPU::opc_CB_19(uint8_t opc){
+    // RR C
+    rr8(h_C);
+}
+void CPU::opc_CB_1A(uint8_t opc){
+    // RR D
+    rr8(h_D);
+}
+void CPU::opc_CB_1B(uint8_t opc){
+    // RR E
+    rr8(h_E);
+}
+void CPU::opc_CB_1C(uint8_t opc){
+    // RR H
+    rr8(h_H);
+}
+void CPU::opc_CB_1D(uint8_t opc){
+    // RR L
+    rr8(h_L);
+}
+void CPU::opc_CB_1E(uint8_t opc){
+    // RR (HL)
+    rr8(h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_1F(uint8_t opc){
+    // RR A
+    rr8(h_A);
+}
 
-void CPU::opc_CB_20(uint8_t opc){}
-void CPU::opc_CB_21(uint8_t opc){}
-void CPU::opc_CB_22(uint8_t opc){}
-void CPU::opc_CB_23(uint8_t opc){}
-void CPU::opc_CB_24(uint8_t opc){}
-void CPU::opc_CB_25(uint8_t opc){}
-void CPU::opc_CB_26(uint8_t opc){}
-void CPU::opc_CB_27(uint8_t opc){}
-void CPU::opc_CB_28(uint8_t opc){}
-void CPU::opc_CB_29(uint8_t opc){}
-void CPU::opc_CB_2A(uint8_t opc){}
-void CPU::opc_CB_2B(uint8_t opc){}
-void CPU::opc_CB_2C(uint8_t opc){}
-void CPU::opc_CB_2D(uint8_t opc){}
-void CPU::opc_CB_2E(uint8_t opc){}
-void CPU::opc_CB_2F(uint8_t opc){}
+void CPU::opc_CB_20(uint8_t opc){
+    // SLA B
+    sla8(h_B);
+}
+void CPU::opc_CB_21(uint8_t opc){
+    // SLA C
+    sla8(h_C);
+}
+void CPU::opc_CB_22(uint8_t opc){
+    // SLA D
+    sla8(h_D);
+}
+void CPU::opc_CB_23(uint8_t opc){
+    // SLA E
+    sla8(h_E);
+}
+void CPU::opc_CB_24(uint8_t opc){
+    // SLA H
+    sla8(h_H);
+}
+void CPU::opc_CB_25(uint8_t opc){
+    // SLA L
+    sla8(h_L);
+}
+void CPU::opc_CB_26(uint8_t opc){
+    // SLA (HL)
+    sla8(h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_27(uint8_t opc){
+    // SLA A
+    sla8(h_A);
+}
+void CPU::opc_CB_28(uint8_t opc){
+    // SRA B
+    sra8(h_B);
+}
+void CPU::opc_CB_29(uint8_t opc){
+    // SRA C
+    sra8(h_C);
+}
+void CPU::opc_CB_2A(uint8_t opc){
+    // SRA D
+    sra8(h_D);
+}
+void CPU::opc_CB_2B(uint8_t opc){
+    // SRA E
+    sra8(h_E);
+}
+void CPU::opc_CB_2C(uint8_t opc){
+    // SRA H
+    sra8(h_H);
+}
+void CPU::opc_CB_2D(uint8_t opc){
+    // SRA L
+    sra8(h_L);
+}
+void CPU::opc_CB_2E(uint8_t opc){
+    // SRA (HL)
+    sra8(h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_2F(uint8_t opc){
+    // SRA A
+    sra8(h_A);
+}
 
-void CPU::opc_CB_30(uint8_t opc){}
-void CPU::opc_CB_31(uint8_t opc){}
-void CPU::opc_CB_32(uint8_t opc){}
-void CPU::opc_CB_33(uint8_t opc){}
-void CPU::opc_CB_34(uint8_t opc){}
-void CPU::opc_CB_35(uint8_t opc){}
-void CPU::opc_CB_36(uint8_t opc){}
-void CPU::opc_CB_37(uint8_t opc){}
-void CPU::opc_CB_38(uint8_t opc){}
-void CPU::opc_CB_39(uint8_t opc){}
-void CPU::opc_CB_3A(uint8_t opc){}
-void CPU::opc_CB_3B(uint8_t opc){}
-void CPU::opc_CB_3C(uint8_t opc){}
-void CPU::opc_CB_3D(uint8_t opc){}
-void CPU::opc_CB_3E(uint8_t opc){}
-void CPU::opc_CB_3F(uint8_t opc){}
+void CPU::opc_CB_30(uint8_t opc){
+    // SWAP B
+    swap(h_B);
+}
+void CPU::opc_CB_31(uint8_t opc){
+    // SWAP C
+    swap(h_C);
+}
+void CPU::opc_CB_32(uint8_t opc){
+    // SWAP D
+    swap(h_D);
+}
+void CPU::opc_CB_33(uint8_t opc){
+    // SWAP E
+    swap(h_E);
+}
+void CPU::opc_CB_34(uint8_t opc){
+    // SWAP H
+    swap(h_H);
+}
+void CPU::opc_CB_35(uint8_t opc){
+    // SWAP L
+    swap(h_L);
+}
+void CPU::opc_CB_36(uint8_t opc){
+    // SWAP (HL)
+    swap(h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_37(uint8_t opc){
+    // SWAP A
+    swap(h_A);
+}
+void CPU::opc_CB_38(uint8_t opc){
+    // SRL B
+    srl8(h_B);
+}
+void CPU::opc_CB_39(uint8_t opc){
+    // SRL C
+    srl8(h_C);
+}
+void CPU::opc_CB_3A(uint8_t opc){
+    // SRL D
+    srl8(h_D);
+}
+void CPU::opc_CB_3B(uint8_t opc){
+    // SRL E
+    srl8(h_E);
+}
+void CPU::opc_CB_3C(uint8_t opc){
+    // SRL H
+    srl8(h_H);
+}
+void CPU::opc_CB_3D(uint8_t opc){
+    // SRL L
+    srl8(h_L);
+}
+void CPU::opc_CB_3E(uint8_t opc){
+    // SRL (HL)
+    srl8(h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_3F(uint8_t opc){
+    // SRL A
+    srl8(h_A);
+}
 
-void CPU::opc_CB_40(uint8_t opc){}
-void CPU::opc_CB_41(uint8_t opc){}
-void CPU::opc_CB_42(uint8_t opc){}
-void CPU::opc_CB_43(uint8_t opc){}
-void CPU::opc_CB_44(uint8_t opc){}
-void CPU::opc_CB_45(uint8_t opc){}
-void CPU::opc_CB_46(uint8_t opc){}
-void CPU::opc_CB_47(uint8_t opc){}
-void CPU::opc_CB_48(uint8_t opc){}
-void CPU::opc_CB_49(uint8_t opc){}
-void CPU::opc_CB_4A(uint8_t opc){}
-void CPU::opc_CB_4B(uint8_t opc){}
-void CPU::opc_CB_4C(uint8_t opc){}
-void CPU::opc_CB_4D(uint8_t opc){}
-void CPU::opc_CB_4E(uint8_t opc){}
-void CPU::opc_CB_4F(uint8_t opc){}
+void CPU::opc_CB_40(uint8_t opc){
+    // BIT 0, B
+    bit8(0, h_B);
+}
+void CPU::opc_CB_41(uint8_t opc){
+    // BIT 0, C
+    bit8(0, h_C);
+}
+void CPU::opc_CB_42(uint8_t opc){
+    // BIT 0, D
+    bit8(0, h_D);
+}
+void CPU::opc_CB_43(uint8_t opc){
+    // BIT 0, E
+    bit8(0, h_E);
+}
+void CPU::opc_CB_44(uint8_t opc){
+    // BIT 0, H
+    bit8(0, h_H);
+}
+void CPU::opc_CB_45(uint8_t opc){
+    // BIT 0, L
+    bit8(0, h_L);
+}
+void CPU::opc_CB_46(uint8_t opc){
+    // BIT 0, (HL)
+    bit8(0, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_47(uint8_t opc){
+    // BIT 0, A
+    bit8(0, h_A);
+}
+void CPU::opc_CB_48(uint8_t opc){
+    // BIT 1, B
+    bit8(1, h_B);
+}
+void CPU::opc_CB_49(uint8_t opc){
+    // BIT 1, C
+    bit8(1, h_C);
+}
+void CPU::opc_CB_4A(uint8_t opc){
+    // BIT 1, D
+    bit8(1, h_D);
+}
+void CPU::opc_CB_4B(uint8_t opc){
+    // BIT 1, E
+    bit8(1, h_E);
+}
+void CPU::opc_CB_4C(uint8_t opc){
+    // BIT 1, H
+    bit8(1, h_H);
+}
+void CPU::opc_CB_4D(uint8_t opc){
+    // BIT 1, L
+    bit8(1, h_L);
+}
+void CPU::opc_CB_4E(uint8_t opc){
+    // BIT 1, (HL)
+    bit8(1, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_4F(uint8_t opc){
+    // BIT 1, A
+    bit8(1, h_A);
+}
 
-void CPU::opc_CB_50(uint8_t opc){}
-void CPU::opc_CB_51(uint8_t opc){}
-void CPU::opc_CB_52(uint8_t opc){}
-void CPU::opc_CB_53(uint8_t opc){}
-void CPU::opc_CB_54(uint8_t opc){}
-void CPU::opc_CB_55(uint8_t opc){}
-void CPU::opc_CB_56(uint8_t opc){}
-void CPU::opc_CB_57(uint8_t opc){}
-void CPU::opc_CB_58(uint8_t opc){}
-void CPU::opc_CB_59(uint8_t opc){}
-void CPU::opc_CB_5A(uint8_t opc){}
-void CPU::opc_CB_5B(uint8_t opc){}
-void CPU::opc_CB_5C(uint8_t opc){}
-void CPU::opc_CB_5D(uint8_t opc){}
-void CPU::opc_CB_5E(uint8_t opc){}
-void CPU::opc_CB_5F(uint8_t opc){}
+void CPU::opc_CB_50(uint8_t opc){
+    // BIT 2, B
+    bit8(2, h_B);
+}
+void CPU::opc_CB_51(uint8_t opc){
+    // BIT 2, C
+    bit8(2, h_C);
+}
+void CPU::opc_CB_52(uint8_t opc){
+    // BIT 2, D
+    bit8(2, h_D);
+}
+void CPU::opc_CB_53(uint8_t opc){
+    // BIT 2, E
+    bit8(2, h_E);
+}
+void CPU::opc_CB_54(uint8_t opc){
+    // BIT 2, H
+    bit8(2, h_H);
+}
+void CPU::opc_CB_55(uint8_t opc){
+    // BIT 2, L
+    bit8(2, h_L);
+}
+void CPU::opc_CB_56(uint8_t opc){
+    // BIT 2, (HL)
+    bit8(2, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_57(uint8_t opc){
+    // BIT 2, A
+    bit8(2, h_A);
+}
+void CPU::opc_CB_58(uint8_t opc){
+    // BIT 3, B
+    bit8(3, h_B);
+}
+void CPU::opc_CB_59(uint8_t opc){
+    // BIT 3, C
+    bit8(3, h_C);
+}
+void CPU::opc_CB_5A(uint8_t opc){
+    // BIT 3, D
+    bit8(3, h_D);
+}
+void CPU::opc_CB_5B(uint8_t opc){
+    // BIT 3, E
+    bit8(3, h_E);
+}
+void CPU::opc_CB_5C(uint8_t opc){
+    // BIT 3, H
+    bit8(3, h_H);
+}
+void CPU::opc_CB_5D(uint8_t opc){
+    // BIT 3, L
+    bit8(3, h_L);
+}
+void CPU::opc_CB_5E(uint8_t opc){
+    // BIT 3, (HL)
+    bit8(3, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_5F(uint8_t opc){
+    // BIT 3, A
+    bit8(3, h_A);
+}
 
-void CPU::opc_CB_60(uint8_t opc){}
-void CPU::opc_CB_61(uint8_t opc){}
-void CPU::opc_CB_62(uint8_t opc){}
-void CPU::opc_CB_63(uint8_t opc){}
-void CPU::opc_CB_64(uint8_t opc){}
-void CPU::opc_CB_65(uint8_t opc){}
-void CPU::opc_CB_66(uint8_t opc){}
-void CPU::opc_CB_67(uint8_t opc){}
-void CPU::opc_CB_68(uint8_t opc){}
-void CPU::opc_CB_69(uint8_t opc){}
-void CPU::opc_CB_6A(uint8_t opc){}
-void CPU::opc_CB_6B(uint8_t opc){}
-void CPU::opc_CB_6C(uint8_t opc){}
-void CPU::opc_CB_6D(uint8_t opc){}
-void CPU::opc_CB_6E(uint8_t opc){}
-void CPU::opc_CB_6F(uint8_t opc){}
+void CPU::opc_CB_60(uint8_t opc){
+    // BIT 4, B
+    bit8(4, h_B);
+}
+void CPU::opc_CB_61(uint8_t opc){
+    // BIT 4, C
+    bit8(4, h_C);
+}
+void CPU::opc_CB_62(uint8_t opc){
+    // BIT 4, D
+    bit8(4, h_D);
+}
+void CPU::opc_CB_63(uint8_t opc){
+    // BIT 4, E
+    bit8(4, h_E);
+}
+void CPU::opc_CB_64(uint8_t opc){
+    // BIT 4, H
+    bit8(4, h_H);
+}
+void CPU::opc_CB_65(uint8_t opc){
+    // BIT 4, L
+    bit8(4, h_L);
+}
+void CPU::opc_CB_66(uint8_t opc){
+    // BIT 4, (HL)
+    bit8(4, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_67(uint8_t opc){
+    // BIT 4, A
+    bit8(4, h_A);
+}
+void CPU::opc_CB_68(uint8_t opc){
+    // BIT 5, B
+    bit8(5, h_B);
+}
+void CPU::opc_CB_69(uint8_t opc){
+    // BIT 5, C
+    bit8(5, h_C);
+}
+void CPU::opc_CB_6A(uint8_t opc){
+    // BIT 5, D
+    bit8(5, h_D);
+}
+void CPU::opc_CB_6B(uint8_t opc){
+    // BIT 5, E
+    bit8(5, h_E);
+}
+void CPU::opc_CB_6C(uint8_t opc){
+    // BIT 5, H
+    bit8(5, h_H);
+}
+void CPU::opc_CB_6D(uint8_t opc){
+    // BIT 5, L
+    bit8(5, h_L);
+}
+void CPU::opc_CB_6E(uint8_t opc){
+    // BIT 5, (HL)
+    bit8(5, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_6F(uint8_t opc){
+    // BIT 5, A
+    bit8(5, h_A);
+}
 
-void CPU::opc_CB_70(uint8_t opc){}
-void CPU::opc_CB_71(uint8_t opc){}
-void CPU::opc_CB_72(uint8_t opc){}
-void CPU::opc_CB_73(uint8_t opc){}
-void CPU::opc_CB_74(uint8_t opc){}
-void CPU::opc_CB_75(uint8_t opc){}
-void CPU::opc_CB_76(uint8_t opc){}
-void CPU::opc_CB_77(uint8_t opc){}
-void CPU::opc_CB_78(uint8_t opc){}
-void CPU::opc_CB_79(uint8_t opc){}
-void CPU::opc_CB_7A(uint8_t opc){}
-void CPU::opc_CB_7B(uint8_t opc){}
-void CPU::opc_CB_7C(uint8_t opc){}
-void CPU::opc_CB_7D(uint8_t opc){}
-void CPU::opc_CB_7E(uint8_t opc){}
-void CPU::opc_CB_7F(uint8_t opc){}
+void CPU::opc_CB_70(uint8_t opc){
+    // BIT 6, B
+    bit8(6, h_B);
+}
+void CPU::opc_CB_71(uint8_t opc){
+    // BIT 6, C
+    bit8(6, h_C);
+}
+void CPU::opc_CB_72(uint8_t opc){
+    // BIT 6, D
+    bit8(6, h_D);
+}
+void CPU::opc_CB_73(uint8_t opc){
+    // BIT 6, E
+    bit8(6, h_E);
+}
+void CPU::opc_CB_74(uint8_t opc){
+    // BIT 6, H
+    bit8(6, h_H);
+}
+void CPU::opc_CB_75(uint8_t opc){
+    // BIT 6, L
+    bit8(6, h_L);
+}
+void CPU::opc_CB_76(uint8_t opc){
+    // BIT 6, (HL)
+    bit8(6, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_77(uint8_t opc){
+    // BIT 6, A
+    bit8(6, h_A);
+}
+void CPU::opc_CB_78(uint8_t opc){
+    // BIT 7, B
+    bit8(7, h_B);
+}
+void CPU::opc_CB_79(uint8_t opc){
+    // BIT 7, C
+    bit8(7, h_C);
+}
+void CPU::opc_CB_7A(uint8_t opc){
+    // BIT 7, D
+    bit8(7, h_D);
+}
+void CPU::opc_CB_7B(uint8_t opc){
+    // BIT 7, E
+    bit8(7, h_E);
+}
+void CPU::opc_CB_7C(uint8_t opc){
+    // BIT 7, H
+    bit8(7, h_H);
+}
+void CPU::opc_CB_7D(uint8_t opc){
+    // BIT 7, L
+    bit8(7, h_L);
+}
+void CPU::opc_CB_7E(uint8_t opc){
+    // BIT 7, (HL)
+    bit8(7, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_7F(uint8_t opc){
+    // BIT 7, A
+    bit8(7, h_A);
+}
 
-void CPU::opc_CB_80(uint8_t opc){}
-void CPU::opc_CB_81(uint8_t opc){}
-void CPU::opc_CB_82(uint8_t opc){}
-void CPU::opc_CB_83(uint8_t opc){}
-void CPU::opc_CB_84(uint8_t opc){}
-void CPU::opc_CB_85(uint8_t opc){}
-void CPU::opc_CB_86(uint8_t opc){}
-void CPU::opc_CB_87(uint8_t opc){}
-void CPU::opc_CB_88(uint8_t opc){}
-void CPU::opc_CB_89(uint8_t opc){}
-void CPU::opc_CB_8A(uint8_t opc){}
-void CPU::opc_CB_8B(uint8_t opc){}
-void CPU::opc_CB_8C(uint8_t opc){}
-void CPU::opc_CB_8D(uint8_t opc){}
-void CPU::opc_CB_8E(uint8_t opc){}
-void CPU::opc_CB_8F(uint8_t opc){}
+void CPU::opc_CB_80(uint8_t opc){
+    // RES 0, B
+    res8(0, h_B);
+}
+void CPU::opc_CB_81(uint8_t opc){
+    // RES 0, C
+    res8(0, h_C);
+}
+void CPU::opc_CB_82(uint8_t opc){
+    // RES 0, D
+    res8(0, h_D);
+}
+void CPU::opc_CB_83(uint8_t opc){
+    // RES 0, E
+    res8(0, h_E);
+}
+void CPU::opc_CB_84(uint8_t opc){
+    // RES 0, H
+    res8(0, h_H);
+}
+void CPU::opc_CB_85(uint8_t opc){
+    // RES 0, L
+    res8(0, h_L);
+}
+void CPU::opc_CB_86(uint8_t opc){
+    // RES 0, (HL)
+    res8(0, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_87(uint8_t opc){
+    // RES 0, A
+    res8(0, h_A);
+}
+void CPU::opc_CB_88(uint8_t opc){
+    // RES 1, B
+    res8(1, h_B);
+}
+void CPU::opc_CB_89(uint8_t opc){
+    // RES 1, C
+    res8(1, h_C);
+}
+void CPU::opc_CB_8A(uint8_t opc){
+    // RES 1, D
+    res8(1, h_D);
+}
+void CPU::opc_CB_8B(uint8_t opc){
+    // RES 1, E
+    res8(1, h_E);
+}
+void CPU::opc_CB_8C(uint8_t opc){
+    // RES 1, H
+    res8(1, h_H);
+}
+void CPU::opc_CB_8D(uint8_t opc){
+    // RES 1, L
+    res8(1, h_L);
+}
+void CPU::opc_CB_8E(uint8_t opc){
+    // RES 1, (HL)
+    res8(1, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_8F(uint8_t opc){
+    // RES 1, A
+    res8(1, h_A);
+}
 
-void CPU::opc_CB_90(uint8_t opc){}
-void CPU::opc_CB_91(uint8_t opc){}
-void CPU::opc_CB_92(uint8_t opc){}
-void CPU::opc_CB_93(uint8_t opc){}
-void CPU::opc_CB_94(uint8_t opc){}
-void CPU::opc_CB_95(uint8_t opc){}
-void CPU::opc_CB_96(uint8_t opc){}
-void CPU::opc_CB_97(uint8_t opc){}
-void CPU::opc_CB_98(uint8_t opc){}
-void CPU::opc_CB_99(uint8_t opc){}
-void CPU::opc_CB_9A(uint8_t opc){}
-void CPU::opc_CB_9B(uint8_t opc){}
-void CPU::opc_CB_9C(uint8_t opc){}
-void CPU::opc_CB_9D(uint8_t opc){}
-void CPU::opc_CB_9E(uint8_t opc){}
-void CPU::opc_CB_9F(uint8_t opc){}
+void CPU::opc_CB_90(uint8_t opc){
+    // RES 2, B
+    res8(2, h_B);
+}
+void CPU::opc_CB_91(uint8_t opc){
+    // RES 2, C
+    res8(2, h_C);
+}
+void CPU::opc_CB_92(uint8_t opc){
+    // RES 2, D
+    res8(2, h_D);
+}
+void CPU::opc_CB_93(uint8_t opc){
+    // RES 2, E
+    res8(2, h_E);
+}
+void CPU::opc_CB_94(uint8_t opc){
+    // RES 2, H
+    res8(2, h_H);
+}
+void CPU::opc_CB_95(uint8_t opc){
+    // RES 2, L
+    res8(2, h_L);
+}
+void CPU::opc_CB_96(uint8_t opc){
+    // RES 2, (HL)
+    res8(2, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_97(uint8_t opc){
+    // RES 2, A
+    res8(2, h_A);
+}
+void CPU::opc_CB_98(uint8_t opc){
+    // RES 3, B
+    res8(3, h_B);
+}
+void CPU::opc_CB_99(uint8_t opc){
+    // RES 3, C
+    res8(3, h_C);
+}
+void CPU::opc_CB_9A(uint8_t opc){
+    // RES 3, D
+    res8(3, h_D);
+}
+void CPU::opc_CB_9B(uint8_t opc){
+    // RES 3, E
+    res8(3, h_E);
+}
+void CPU::opc_CB_9C(uint8_t opc){
+    // RES 3, H
+    res8(3, h_H);
+}
+void CPU::opc_CB_9D(uint8_t opc){
+    // RES 3, L
+    res8(3, h_L);
+}
+void CPU::opc_CB_9E(uint8_t opc){
+    // RES 3, (HL)
+    res8(3, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_9F(uint8_t opc){
+    // RES 3, A
+    res8(3, h_A);
+}
 
-void CPU::opc_CB_A0(uint8_t opc){}
-void CPU::opc_CB_A1(uint8_t opc){}
-void CPU::opc_CB_A2(uint8_t opc){}
-void CPU::opc_CB_A3(uint8_t opc){}
-void CPU::opc_CB_A4(uint8_t opc){}
-void CPU::opc_CB_A5(uint8_t opc){}
-void CPU::opc_CB_A6(uint8_t opc){}
-void CPU::opc_CB_A7(uint8_t opc){}
-void CPU::opc_CB_A8(uint8_t opc){}
-void CPU::opc_CB_A9(uint8_t opc){}
-void CPU::opc_CB_AA(uint8_t opc){}
-void CPU::opc_CB_AB(uint8_t opc){}
-void CPU::opc_CB_AC(uint8_t opc){}
-void CPU::opc_CB_AD(uint8_t opc){}
-void CPU::opc_CB_AE(uint8_t opc){}
-void CPU::opc_CB_AF(uint8_t opc){}
+void CPU::opc_CB_A0(uint8_t opc){
+    // RES 4, B
+    res8(4, h_B);
+}
+void CPU::opc_CB_A1(uint8_t opc){
+    // RES 4, C
+    res8(4, h_C);
+}
+void CPU::opc_CB_A2(uint8_t opc){
+    // RES 4, D
+    res8(4, h_D);
+}
+void CPU::opc_CB_A3(uint8_t opc){
+    // RES 4, E
+    res8(4, h_E);
+}
+void CPU::opc_CB_A4(uint8_t opc){
+    // RES 4, H
+    res8(4, h_H);
+}
+void CPU::opc_CB_A5(uint8_t opc){
+    // RES 4, L
+    res8(4, h_L);
+}
+void CPU::opc_CB_A6(uint8_t opc){
+    // RES 4, (HL)
+    res8(4, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_A7(uint8_t opc){
+    // RES 4, A
+    res8(4, h_A);
+}
+void CPU::opc_CB_A8(uint8_t opc){
+    // RES 5, B
+    res8(5, h_B);
+}
+void CPU::opc_CB_A9(uint8_t opc){
+    // RES 5, C
+    res8(5, h_C);
+}
+void CPU::opc_CB_AA(uint8_t opc){
+    // RES 5, D
+    res8(5, h_D);
+}
+void CPU::opc_CB_AB(uint8_t opc){
+    // RES 5, E
+    res8(5, h_E);
+}
+void CPU::opc_CB_AC(uint8_t opc){
+    // RES 5, H
+    res8(5, h_H);
+}
+void CPU::opc_CB_AD(uint8_t opc){
+    // RES 5, L
+    res8(5, h_L);
+}
+void CPU::opc_CB_AE(uint8_t opc){
+    // RES 5, (HL)
+    res8(5, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_AF(uint8_t opc){
+    // RES 5, A
+    res8(5, h_A);
+}
 
-void CPU::opc_CB_B0(uint8_t opc){}
-void CPU::opc_CB_B1(uint8_t opc){}
-void CPU::opc_CB_B2(uint8_t opc){}
-void CPU::opc_CB_B3(uint8_t opc){}
-void CPU::opc_CB_B4(uint8_t opc){}
-void CPU::opc_CB_B5(uint8_t opc){}
-void CPU::opc_CB_B6(uint8_t opc){}
-void CPU::opc_CB_B7(uint8_t opc){}
-void CPU::opc_CB_B8(uint8_t opc){}
-void CPU::opc_CB_B9(uint8_t opc){}
-void CPU::opc_CB_BA(uint8_t opc){}
-void CPU::opc_CB_BB(uint8_t opc){}
-void CPU::opc_CB_BC(uint8_t opc){}
-void CPU::opc_CB_BD(uint8_t opc){}
-void CPU::opc_CB_BE(uint8_t opc){}
-void CPU::opc_CB_BF(uint8_t opc){}
+void CPU::opc_CB_B0(uint8_t opc){
+    // RES 6, B
+    res8(6, h_B);
+}
+void CPU::opc_CB_B1(uint8_t opc){
+    // RES 6, C
+    res8(6, h_C);
+}
+void CPU::opc_CB_B2(uint8_t opc){
+    // RES 6, D
+    res8(6, h_D);
+}
+void CPU::opc_CB_B3(uint8_t opc){
+    // RES 6, E
+    res8(6, h_E);
+}
+void CPU::opc_CB_B4(uint8_t opc){
+    // RES 6, H
+    res8(6, h_H);
+}
+void CPU::opc_CB_B5(uint8_t opc){
+    // RES 6, L
+    res8(6, h_L);
+}
+void CPU::opc_CB_B6(uint8_t opc){
+    // RES 6, (HL)
+    res8(6, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_B7(uint8_t opc){
+    // RES 6, A
+    res8(6, h_A);
+}
+void CPU::opc_CB_B8(uint8_t opc){
+    // RES 7, B
+    res8(7, h_B);
+}
+void CPU::opc_CB_B9(uint8_t opc){
+    // RES 7, C
+    res8(7, h_C);
+}
+void CPU::opc_CB_BA(uint8_t opc){
+    // RES 7, D
+    res8(7, h_D);
+}
+void CPU::opc_CB_BB(uint8_t opc){
+    // RES 7, E
+    res8(7, h_E);
+}
+void CPU::opc_CB_BC(uint8_t opc){
+    // RES 7, H
+    res8(7, h_H);
+}
+void CPU::opc_CB_BD(uint8_t opc){
+    // RES 7, L
+    res8(7, h_L);
+}
+void CPU::opc_CB_BE(uint8_t opc){
+    // RES 7, (HL)
+    res8(7, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_BF(uint8_t opc){
+    // RES 7, A
+    res8(7, h_A);
+}
 
-void CPU::opc_CB_C0(uint8_t opc){}
-void CPU::opc_CB_C1(uint8_t opc){}
-void CPU::opc_CB_C2(uint8_t opc){}
-void CPU::opc_CB_C3(uint8_t opc){}
-void CPU::opc_CB_C4(uint8_t opc){}
-void CPU::opc_CB_C5(uint8_t opc){}
-void CPU::opc_CB_C6(uint8_t opc){}
-void CPU::opc_CB_C7(uint8_t opc){}
-void CPU::opc_CB_C8(uint8_t opc){}
-void CPU::opc_CB_C9(uint8_t opc){}
-void CPU::opc_CB_CA(uint8_t opc){}
-void CPU::opc_CB_CB(uint8_t opc){}
-void CPU::opc_CB_CC(uint8_t opc){}
-void CPU::opc_CB_CD(uint8_t opc){}
-void CPU::opc_CB_CE(uint8_t opc){}
-void CPU::opc_CB_CF(uint8_t opc){}
+void CPU::opc_CB_C0(uint8_t opc){
+    // SET 0, B
+    set8(0, h_B);
+}
+void CPU::opc_CB_C1(uint8_t opc){
+    // SET 0, C
+    set8(0, h_C);
+}
+void CPU::opc_CB_C2(uint8_t opc){
+    // SET 0, D
+    set8(0, h_D);
+}
+void CPU::opc_CB_C3(uint8_t opc){
+    // SET 0, E
+    set8(0, h_E);
+}
+void CPU::opc_CB_C4(uint8_t opc){
+    // SET 0, H
+    set8(0, h_H);
+}
+void CPU::opc_CB_C5(uint8_t opc){
+    // SET 0, L
+    set8(0, h_L);
+}
+void CPU::opc_CB_C6(uint8_t opc){
+    // SET 0, (HL)
+    set8(0, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_C7(uint8_t opc){
+    // SET 0, A
+    set8(0, h_A);
+}
+void CPU::opc_CB_C8(uint8_t opc){
+    // SET 1, B
+    set8(1, h_B);
+}
+void CPU::opc_CB_C9(uint8_t opc){
+    // SET 1, C
+    set8(1, h_C);
+}
+void CPU::opc_CB_CA(uint8_t opc){
+    // SET 1, D
+    set8(1, h_D);
+}
+void CPU::opc_CB_CB(uint8_t opc){
+    // SET 1, E
+    set8(1, h_E);
+}
+void CPU::opc_CB_CC(uint8_t opc){
+    // SET 1, H
+    set8(1, h_H);
+}
+void CPU::opc_CB_CD(uint8_t opc){
+    // SET 1, L
+    set8(1, h_L);
+}
+void CPU::opc_CB_CE(uint8_t opc){
+    // SET 1, (HL)
+    set8(1, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_CF(uint8_t opc){
+    // SET 1, A
+    set8(1, h_A);
+}
 
-void CPU::opc_CB_D0(uint8_t opc){}
-void CPU::opc_CB_D1(uint8_t opc){}
-void CPU::opc_CB_D2(uint8_t opc){}
-void CPU::opc_CB_D3(uint8_t opc){}
-void CPU::opc_CB_D4(uint8_t opc){}
-void CPU::opc_CB_D5(uint8_t opc){}
-void CPU::opc_CB_D6(uint8_t opc){}
-void CPU::opc_CB_D7(uint8_t opc){}
-void CPU::opc_CB_D8(uint8_t opc){}
-void CPU::opc_CB_D9(uint8_t opc){}
-void CPU::opc_CB_DA(uint8_t opc){}
-void CPU::opc_CB_DB(uint8_t opc){}
-void CPU::opc_CB_DC(uint8_t opc){}
-void CPU::opc_CB_DD(uint8_t opc){}
-void CPU::opc_CB_DE(uint8_t opc){}
-void CPU::opc_CB_DF(uint8_t opc){}
+void CPU::opc_CB_D0(uint8_t opc){
+    // SET 2, B
+    set8(2, h_B);
+}
+void CPU::opc_CB_D1(uint8_t opc){
+    // SET 2, C
+    set8(2, h_C);
+}
+void CPU::opc_CB_D2(uint8_t opc){
+    // SET 2, D
+    set8(2, h_D);
+}
+void CPU::opc_CB_D3(uint8_t opc){
+    // SET 2, E
+    set8(2, h_E);
+}
+void CPU::opc_CB_D4(uint8_t opc){
+    // SET 2, H
+    set8(2, h_H);
+}
+void CPU::opc_CB_D5(uint8_t opc){
+    // SET 2, L
+    set8(2, h_L);
+}
+void CPU::opc_CB_D6(uint8_t opc){
+    // SET 2, (HL)
+    set8(2, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_D7(uint8_t opc){
+    // SET 2, A
+    set8(2, h_A);
+}
+void CPU::opc_CB_D8(uint8_t opc){
+    // SET 3, B
+    set8(3, h_B);
+}
+void CPU::opc_CB_D9(uint8_t opc){
+    // SET 3, C
+    set8(3, h_C);
+}
+void CPU::opc_CB_DA(uint8_t opc){
+    // SET 3, D
+    set8(3, h_D);
+}
+void CPU::opc_CB_DB(uint8_t opc){
+    // SET 3, E
+    set8(3, h_E);
+}
+void CPU::opc_CB_DC(uint8_t opc){
+    // SET 3, H
+    set8(3, h_H);
+}
+void CPU::opc_CB_DD(uint8_t opc){
+    // SET 3, L
+    set8(3, h_L);
+}
+void CPU::opc_CB_DE(uint8_t opc){
+    // SET 3, (HL)
+    set8(3, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_DF(uint8_t opc){
+    // SET 3, A
+    set8(3, h_A);
+}
 
-void CPU::opc_CB_E0(uint8_t opc){}
-void CPU::opc_CB_E1(uint8_t opc){}
-void CPU::opc_CB_E2(uint8_t opc){}
-void CPU::opc_CB_E3(uint8_t opc){}
-void CPU::opc_CB_E4(uint8_t opc){}
-void CPU::opc_CB_E5(uint8_t opc){}
-void CPU::opc_CB_E6(uint8_t opc){}
-void CPU::opc_CB_E7(uint8_t opc){}
-void CPU::opc_CB_E8(uint8_t opc){}
-void CPU::opc_CB_E9(uint8_t opc){}
-void CPU::opc_CB_EA(uint8_t opc){}
-void CPU::opc_CB_EB(uint8_t opc){}
-void CPU::opc_CB_EC(uint8_t opc){}
-void CPU::opc_CB_ED(uint8_t opc){}
-void CPU::opc_CB_EE(uint8_t opc){}
-void CPU::opc_CB_EF(uint8_t opc){}
+void CPU::opc_CB_E0(uint8_t opc){
+    // SET 4, B
+    set8(4, h_B);
+}
+void CPU::opc_CB_E1(uint8_t opc){
+    // SET 4, C
+    set8(4, h_C);
+}
+void CPU::opc_CB_E2(uint8_t opc){
+    // SET 4, D
+    set8(4, h_D);
+}
+void CPU::opc_CB_E3(uint8_t opc){
+    // SET 4, E
+    set8(4, h_E);
+}
+void CPU::opc_CB_E4(uint8_t opc){
+    // SET 4, H
+    set8(4, h_H);
+}
+void CPU::opc_CB_E5(uint8_t opc){
+    // SET 4, L
+    set8(4, h_L);
+}
+void CPU::opc_CB_E6(uint8_t opc){
+    // SET 4, (HL)
+    set8(4, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_E7(uint8_t opc){
+    // SET 4, A
+    set8(4, h_A);
+}
+void CPU::opc_CB_E8(uint8_t opc){
+    // SET 5, B
+    set8(5, h_B);
+}
+void CPU::opc_CB_E9(uint8_t opc){
+    // SET 5, C
+    set8(5, h_C);
+}
+void CPU::opc_CB_EA(uint8_t opc){
+    // SET 5, D
+    set8(5, h_D);
+}
+void CPU::opc_CB_EB(uint8_t opc){
+    // SET 5, E
+    set8(5, h_E);
+}
+void CPU::opc_CB_EC(uint8_t opc){
+    // SET 5, H
+    set8(5, h_H);
+}
+void CPU::opc_CB_ED(uint8_t opc){
+    // SET 5, L
+    set8(5, h_L);
+}
+void CPU::opc_CB_EE(uint8_t opc){
+    // SET 5, (HL)
+    set8(5, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_EF(uint8_t opc){
+    // SET 5, A
+    set8(5, h_A);
+}
 
-void CPU::opc_CB_F0(uint8_t opc){}
-void CPU::opc_CB_F1(uint8_t opc){}
-void CPU::opc_CB_F2(uint8_t opc){}
-void CPU::opc_CB_F3(uint8_t opc){}
-void CPU::opc_CB_F4(uint8_t opc){}
-void CPU::opc_CB_F5(uint8_t opc){}
-void CPU::opc_CB_F6(uint8_t opc){}
-void CPU::opc_CB_F7(uint8_t opc){}
-void CPU::opc_CB_F8(uint8_t opc){}
-void CPU::opc_CB_F9(uint8_t opc){}
-void CPU::opc_CB_FA(uint8_t opc){}
-void CPU::opc_CB_FB(uint8_t opc){}
-void CPU::opc_CB_FC(uint8_t opc){}
-void CPU::opc_CB_FD(uint8_t opc){}
-void CPU::opc_CB_FE(uint8_t opc){}
-void CPU::opc_CB_FF(uint8_t opc){}
+void CPU::opc_CB_F0(uint8_t opc){
+    // SET 6, B
+    set8(6, h_B);
+}
+void CPU::opc_CB_F1(uint8_t opc){
+    // SET 6, C
+    set8(6, h_C);
+}
+void CPU::opc_CB_F2(uint8_t opc){
+    // SET 6, D
+    set8(6, h_D);
+}
+void CPU::opc_CB_F3(uint8_t opc){
+    // SET 6, E
+    set8(6, h_E);
+}
+void CPU::opc_CB_F4(uint8_t opc){
+    // SET 6, H
+    set8(6, h_H);
+}
+void CPU::opc_CB_F5(uint8_t opc){
+    // SET 6, L
+    set8(6, h_L);
+}
+void CPU::opc_CB_F6(uint8_t opc){
+    // SET 6, (HL)
+    set8(6, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_F7(uint8_t opc){
+    // SET 6, A
+    set8(6, h_A);
+}
+void CPU::opc_CB_F8(uint8_t opc){
+    // SET 7, B
+    set8(7, h_B);
+}
+void CPU::opc_CB_F9(uint8_t opc){
+    // SET 7, C
+    set8(7, h_C);
+}
+void CPU::opc_CB_FA(uint8_t opc){
+    // SET 7, D
+    set8(7, h_D);
+}
+void CPU::opc_CB_FB(uint8_t opc){
+    // SET 7, E
+    set8(7, h_E);
+}
+void CPU::opc_CB_FC(uint8_t opc){
+    // SET 7, H
+    set8(7, h_H);
+}
+void CPU::opc_CB_FD(uint8_t opc){
+    // SET 7, L
+    set8(7, h_L);
+}
+void CPU::opc_CB_FE(uint8_t opc){
+    // SET 7, (HL)
+    set8(7, h_MEMORY[get_h_HL()]);
+    h_CYCLES = 16;
+}
+void CPU::opc_CB_FF(uint8_t opc){
+    // SET 7, A
+    set8(7, h_A);
+}

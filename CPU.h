@@ -115,6 +115,7 @@ class CPU{
         }
 
         /* Opcode Helper Functions */
+
         void conditionalRelativeJump(bool condition, int8_t offset);
         void relativeJump(int8_t offset);
         void conditionalPositionJump(bool condition);
@@ -152,6 +153,20 @@ class CPU{
         //void load8(uint8_t &target, uint8_t data); // -> unnecessary? will implement if load16 gets implemented
         //void add16(uint16_t target, uint16_t addend); // -> want to implement this but not sure how at the moment
 
+
+        /* CB-Prefixed Opcode Helper Functions */
+
+        void rlc8(uint8_t &target);
+        void rl8(uint8_t &target);
+        void rrc8(uint8_t &target);
+        void rr8(uint8_t &target);
+        void sla8(uint8_t &target);
+        void sra8(uint8_t &target);
+        void swap(uint8_t &target);
+        void srl8(uint8_t &target);
+        void bit8(uint8_t bit, uint8_t target);
+        void res8(uint8_t bit, uint8_t &target);
+        void set8(uint8_t bit, uint8_t &target);
 
         /* Opcode Functions */
 
