@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <string.h>
-#include "Memory.h"
+#include "MMU.h"
 
 class CPU{
 
@@ -24,7 +24,7 @@ class CPU{
 
     private:
 
-        Memory h_MEMORY;    // CPU's Memory
+        MMU h_MEMORY;    // CPU's Memory
 
         uint8_t h_SCREENDATA[160][144][4];  // 160x144 Monitor with 4 gray shades
 

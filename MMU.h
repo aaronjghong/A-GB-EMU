@@ -4,7 +4,7 @@
 #include <vector>
 #include <string.h>
 
-class Memory{
+class MMU{
 
     public:
         uint8_t &readMemory(uint16_t address);
