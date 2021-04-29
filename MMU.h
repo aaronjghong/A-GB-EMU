@@ -7,6 +7,7 @@
 class MMU{
 
     public:
+        void loadGame(char* dir);
         uint8_t &readMemory(uint16_t address);
         void writeMemory(uint16_t address, uint8_t data);
         uint8_t memory[0x10000];

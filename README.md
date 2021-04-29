@@ -11,13 +11,13 @@ A-GB-EMU (Aaron's Gameboy Emulator) is an ongoing project where I delve deeper i
 
 ## Next steps
 
+-   Test Opcodes
 -   Continue working with memory (memory control, memory banking, boot rom, etc.)
 -   Learn about Gameboy's display (PPU)
 -   Get timings correct
 -   Implement interrupts
 -   Implement graphics
 -   Connect to SDL and implement controls
--   Test Opcodes and implementation
 -   Implement sound
 -   Clean up inconsistencies within Opcode Functions and look to simplify function calls (for ex. use h_B and h_C instead of getting msb from BC getter function)
 

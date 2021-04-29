@@ -12,6 +12,7 @@ class CPU{
     public:
 
         CPU();
+        CPU(char* dir); // REMOVE THIS CONSTRUCTOR WHEN IMPLEMENTING MEMORY AND RE-IMPLEMENT LOAD ELSEWHERE
         ~CPU();
         
         uint8_t getOpcode();
@@ -22,9 +23,11 @@ class CPU{
         bool stopped = false;   // For STOP instruction (?)
         bool halted = false;    // For HALT instruction (?)
 
+        MMU h_MEMORY;    // CPU's Memory
+
     private:
 
-        MMU h_MEMORY;    // CPU's Memory
+
 
         uint8_t h_SCREENDATA[160][144][4];  // 160x144 Monitor with 4 gray shades
 
