@@ -1,7 +1,8 @@
 #include "CPU.h"
 
 CPU::CPU(){
-    // Gameboy Initializiation Sequence
+    // Gameboy Initializiation Sequence (emulates bootrom)
+    //     |-> Maybe move to seperate func? or call some func loadRom() before all of this
     h_PC = 0x100 ;
     set_h_AF(0x01B0);
     set_h_BC(0x0013);
@@ -671,16 +672,16 @@ void CPU::opc_33(uint8_t opc){
 }
 void CPU::opc_34(uint8_t opc){
     // INC (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     increment8(value);
-    h_MEMORY.writeMemory(get_h_HL(), value); // -> might be redundant but i'm not sure if it'll work without this
+    //h_MEMORY.writeMemory(get_h_HL(), value); // -> might be redundant but i'm not sure if it'll work without this
     h_CYCLES = 12; // Correction
 }
 void CPU::opc_35(uint8_t opc){
     // DEC (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     decrement8(value);
-    h_MEMORY.writeMemory(get_h_HL(), value); // -> might be redundant but i'm not sure if it'll work without this
+    //h_MEMORY.writeMemory(get_h_HL(), value); // -> might be redundant but i'm not sure if it'll work without this
     h_CYCLES = 12; // Correction
 }
 void CPU::opc_36(uint8_t opc){
@@ -1647,9 +1648,9 @@ void CPU::opc_CB_05(uint8_t opc){
 }
 void CPU::opc_CB_06(uint8_t opc){
     // RLC (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     rlc8(value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_07(uint8_t opc){
@@ -1682,9 +1683,9 @@ void CPU::opc_CB_0D(uint8_t opc){
 }
 void CPU::opc_CB_0E(uint8_t opc){
     // RRC (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     rrc8(value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_0F(uint8_t opc){
@@ -1718,9 +1719,9 @@ void CPU::opc_CB_15(uint8_t opc){
 }
 void CPU::opc_CB_16(uint8_t opc){
     // RL (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     rl8(value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_17(uint8_t opc){
@@ -1753,9 +1754,9 @@ void CPU::opc_CB_1D(uint8_t opc){
 }
 void CPU::opc_CB_1E(uint8_t opc){
     // RR (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     rr8(value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_1F(uint8_t opc){
@@ -1789,9 +1790,9 @@ void CPU::opc_CB_25(uint8_t opc){
 }
 void CPU::opc_CB_26(uint8_t opc){
     // SLA (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     sla8(value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_27(uint8_t opc){
@@ -1824,9 +1825,9 @@ void CPU::opc_CB_2D(uint8_t opc){
 }
 void CPU::opc_CB_2E(uint8_t opc){
     // SRA (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     sra8(value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_2F(uint8_t opc){
@@ -1860,9 +1861,9 @@ void CPU::opc_CB_35(uint8_t opc){
 }
 void CPU::opc_CB_36(uint8_t opc){
     // SWAP (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     swap(value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_37(uint8_t opc){
@@ -1895,9 +1896,9 @@ void CPU::opc_CB_3D(uint8_t opc){
 }
 void CPU::opc_CB_3E(uint8_t opc){
     // SRL (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     srl8(value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_3F(uint8_t opc){
@@ -1931,9 +1932,9 @@ void CPU::opc_CB_45(uint8_t opc){
 }
 void CPU::opc_CB_46(uint8_t opc){
     // BIT 0, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     bit8(0, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_47(uint8_t opc){
@@ -1966,9 +1967,9 @@ void CPU::opc_CB_4D(uint8_t opc){
 }
 void CPU::opc_CB_4E(uint8_t opc){
     // BIT 1, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     bit8(1, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_4F(uint8_t opc){
@@ -2002,9 +2003,9 @@ void CPU::opc_CB_55(uint8_t opc){
 }
 void CPU::opc_CB_56(uint8_t opc){
     // BIT 2, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     bit8(2, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_57(uint8_t opc){
@@ -2037,9 +2038,9 @@ void CPU::opc_CB_5D(uint8_t opc){
 }
 void CPU::opc_CB_5E(uint8_t opc){
     // BIT 3, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     bit8(3, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_5F(uint8_t opc){
@@ -2073,9 +2074,9 @@ void CPU::opc_CB_65(uint8_t opc){
 }
 void CPU::opc_CB_66(uint8_t opc){
     // BIT 4, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     bit8(4, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_67(uint8_t opc){
@@ -2108,9 +2109,9 @@ void CPU::opc_CB_6D(uint8_t opc){
 }
 void CPU::opc_CB_6E(uint8_t opc){
     // BIT 5, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     bit8(5, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+   //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_6F(uint8_t opc){
@@ -2144,9 +2145,9 @@ void CPU::opc_CB_75(uint8_t opc){
 }
 void CPU::opc_CB_76(uint8_t opc){
     // BIT 6, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     bit8(6, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_77(uint8_t opc){
@@ -2179,9 +2180,9 @@ void CPU::opc_CB_7D(uint8_t opc){
 }
 void CPU::opc_CB_7E(uint8_t opc){
     // BIT 7, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     bit8(7, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_7F(uint8_t opc){
@@ -2215,9 +2216,9 @@ void CPU::opc_CB_85(uint8_t opc){
 }
 void CPU::opc_CB_86(uint8_t opc){
     // RES 0, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     res8(0, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_87(uint8_t opc){
@@ -2250,9 +2251,9 @@ void CPU::opc_CB_8D(uint8_t opc){
 }
 void CPU::opc_CB_8E(uint8_t opc){
     // RES 1, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     res8(1, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_8F(uint8_t opc){
@@ -2286,9 +2287,9 @@ void CPU::opc_CB_95(uint8_t opc){
 }
 void CPU::opc_CB_96(uint8_t opc){
     // RES 2, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     res8(2, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_97(uint8_t opc){
@@ -2321,9 +2322,9 @@ void CPU::opc_CB_9D(uint8_t opc){
 }
 void CPU::opc_CB_9E(uint8_t opc){
     // RES 3, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     res8(3, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_9F(uint8_t opc){
@@ -2357,9 +2358,9 @@ void CPU::opc_CB_A5(uint8_t opc){
 }
 void CPU::opc_CB_A6(uint8_t opc){
     // RES 4, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     res8(4, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_A7(uint8_t opc){
@@ -2392,9 +2393,9 @@ void CPU::opc_CB_AD(uint8_t opc){
 }
 void CPU::opc_CB_AE(uint8_t opc){
     // RES 5, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     res8(5, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_AF(uint8_t opc){
@@ -2428,9 +2429,9 @@ void CPU::opc_CB_B5(uint8_t opc){
 }
 void CPU::opc_CB_B6(uint8_t opc){
     // RES 6, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     res8(6, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_B7(uint8_t opc){
@@ -2463,9 +2464,9 @@ void CPU::opc_CB_BD(uint8_t opc){
 }
 void CPU::opc_CB_BE(uint8_t opc){
     // RES 7, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     res8(7, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_BF(uint8_t opc){
@@ -2499,9 +2500,9 @@ void CPU::opc_CB_C5(uint8_t opc){
 }
 void CPU::opc_CB_C6(uint8_t opc){
     // SET 0, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     set8(0, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_C7(uint8_t opc){
@@ -2534,9 +2535,9 @@ void CPU::opc_CB_CD(uint8_t opc){
 }
 void CPU::opc_CB_CE(uint8_t opc){
     // SET 1, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     set8(1, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_CF(uint8_t opc){
@@ -2570,9 +2571,9 @@ void CPU::opc_CB_D5(uint8_t opc){
 }
 void CPU::opc_CB_D6(uint8_t opc){
     // SET 2, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     set8(2, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_D7(uint8_t opc){
@@ -2605,9 +2606,9 @@ void CPU::opc_CB_DD(uint8_t opc){
 }
 void CPU::opc_CB_DE(uint8_t opc){
     // SET 3, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     set8(3, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_DF(uint8_t opc){
@@ -2641,9 +2642,9 @@ void CPU::opc_CB_E5(uint8_t opc){
 }
 void CPU::opc_CB_E6(uint8_t opc){
     // SET 4, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     set8(4, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_E7(uint8_t opc){
@@ -2676,9 +2677,9 @@ void CPU::opc_CB_ED(uint8_t opc){
 }
 void CPU::opc_CB_EE(uint8_t opc){
     // SET 5, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     set8(5, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_EF(uint8_t opc){
@@ -2712,9 +2713,9 @@ void CPU::opc_CB_F5(uint8_t opc){
 }
 void CPU::opc_CB_F6(uint8_t opc){
     // SET 6, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     set8(6, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_F7(uint8_t opc){
@@ -2747,9 +2748,9 @@ void CPU::opc_CB_FD(uint8_t opc){
 }
 void CPU::opc_CB_FE(uint8_t opc){
     // SET 7, (HL)
-    uint8_t value = h_MEMORY.readMemory(get_h_HL());
+    uint8_t &value = h_MEMORY.readMemory(get_h_HL());
     set8(7, value);
-    h_MEMORY.writeMemory(get_h_HL(), value);
+    //h_MEMORY.writeMemory(get_h_HL(), value);
     h_CYCLES = 16;
 }
 void CPU::opc_CB_FF(uint8_t opc){

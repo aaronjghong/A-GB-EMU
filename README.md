@@ -30,3 +30,4 @@ If you would like to give this a go, I'd highly recommend the following resource
 -   https://robdor.com/2016/08/10/gameboy-emulator-half-carry-flag/
 -   https://meganesulli.com/generate-gb-opcodes/
 -   https://forums.nesdev.com/viewtopic.php?t=15944 (For DAA instruction)
+-   https://github.com/AntonioND/giibiiadvance/blob/master/docs/TCAGBD.pdf
