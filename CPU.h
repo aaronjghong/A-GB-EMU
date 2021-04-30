@@ -65,7 +65,7 @@ class CPU{
 
         // DE Register
         uint16_t get_h_DE(){
-            return (h_D << 8) | h_D;
+            return (h_D << 8) | h_E;
         }
         void set_h_DE(uint16_t data){
             h_E = data & 0x00FF;

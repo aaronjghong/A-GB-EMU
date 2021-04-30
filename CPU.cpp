@@ -130,7 +130,7 @@ void CPU::conditionalPositionJump(bool condition){
 void CPU::positionJump(){
     uint8_t lsb = h_MEMORY.readMemory(h_PC++);
     uint8_t msb = h_MEMORY.readMemory(h_PC++);
-    h_PC = uint16_t(msb << 8 | lsb);
+    h_PC = uint16_t((msb << 8) | lsb);
     h_CYCLES = 16;
 }
 
@@ -157,12 +157,12 @@ void CPU::reti(){
 }
 
 void CPU::call(){
-    uint8_t msb = uint8_t(h_PC & 0xff00 >> 8);
+    uint8_t lsb_PC = h_MEMORY.readMemory(h_PC++);
+    uint8_t msb_PC = h_MEMORY.readMemory(h_PC++);
     uint8_t lsb = uint8_t(h_PC & 0x00ff);
+    uint8_t msb = uint8_t((h_PC & 0xff00) >> 8);
     h_MEMORY.writeMemory(--h_SP, msb);
     h_MEMORY.writeMemory(--h_SP, lsb);
-    uint8_t msb_PC = h_MEMORY.readMemory(h_PC++);
-    uint8_t lsb_PC = h_MEMORY.readMemory(h_PC++);
     h_PC = uint16_t((msb_PC << 8) | lsb_PC);
     h_CYCLES = 24;
 }
@@ -173,7 +173,7 @@ void CPU::conditionalCall(bool condition){
 }
 
 void CPU::rst(uint8_t f){
-    uint8_t msb = uint8_t(h_PC & 0xff00 >> 8);
+    uint8_t msb = uint8_t((h_PC & 0xff00) >> 8);
     uint8_t lsb = uint8_t(h_PC & 0x00ff);
     h_MEMORY.writeMemory(--h_SP, msb);
     h_MEMORY.writeMemory(--h_SP, lsb);
@@ -184,7 +184,7 @@ void CPU::rst(uint8_t f){
 void CPU::add8(uint8_t &target, uint8_t addend){
     set_flag_N(false);
     uint8_t value = target + addend;
-    set_flag_H(((target & 0xf) + (addend & 0xf)) & 0x10 != 0);
+    set_flag_H((((target & 0xf) + (addend & 0xf))) & 0x10 != 0);
     set_flag_C(value < target); // Overflow has occured
     set_flag_Z(value == 0);
     target = value;
@@ -261,7 +261,7 @@ void CPU::increment8(uint8_t &target){
     set_flag_N(false);
     uint8_t value = target + 1;
     set_flag_Z(value == 0);
-    set_flag_H(((target & 0xf) + 1) & 0x10 == 0x10);
+    set_flag_H((((target & 0xf) + 1) & 0x10) == 0x10);
     target = value;
     h_CYCLES = 4; // Set to 12 seperately for edge cases
 }
@@ -270,7 +270,7 @@ void CPU::decrement8(uint8_t &target){
     set_flag_N(true);
     uint8_t value = target - 1;
     set_flag_Z(value == 0);
-    set_flag_H(((target & 0x10) - 1) & 0x10 == 0);
+    set_flag_H((((target & 0xf) - 1) & 0x10) != 0);
     target = value;
     h_CYCLES = 4; // Set to 12 seperately for edge cases
 }
@@ -398,7 +398,7 @@ void CPU::opc_01(uint8_t opc){
     h_CYCLES = 12;
 }
 void CPU::opc_02(uint8_t opc){
-    // LD (BC), u8 -> Revisit?
+    // LD (BC), h_A -> Revisit?
     h_MEMORY.writeMemory(get_h_BC(), h_A);
     h_CYCLES = 8;
 }
@@ -441,7 +441,7 @@ void CPU::opc_08(uint8_t opc){
     uint8_t msb_PC = h_MEMORY.readMemory(h_PC++);
     uint16_t address = uint16_t((msb_PC << 8) | lsb_PC);
     h_MEMORY.writeMemory(address, lsb);
-    h_MEMORY.writeMemory(address, msb);
+    h_MEMORY.writeMemory(address + 1, msb);
     h_CYCLES = 20;
 }
 void CPU::opc_09(uint8_t opc){
@@ -455,7 +455,7 @@ void CPU::opc_09(uint8_t opc){
 }
 void CPU::opc_0A(uint8_t opc){
     // LD A, (BC)
-    h_A = h_MEMORY.readMemory(h_PC++);
+    h_A = h_MEMORY.readMemory(get_h_BC());
     h_CYCLES = 8;
 }
 void CPU::opc_0B(uint8_t opc){
@@ -535,7 +535,7 @@ void CPU::opc_17(uint8_t opc){
 
     bool bit0 = get_flag_C();
     set_flag_C((h_A & 0b10000000) >> 7 != 0);
-    h_A = h_A << 1  + uint8_t(bit0);
+    h_A = (h_A << 1)  + uint8_t(bit0);
     h_CYCLES = 4;
 }
 void CPU::opc_18(uint8_t opc){
@@ -554,7 +554,7 @@ void CPU::opc_19(uint8_t opc){
 }
 void CPU::opc_1A(uint8_t opc){
     // LD A, (DE)
-    h_A = h_MEMORY.readMemory(h_PC++);
+    h_A = h_MEMORY.readMemory(get_h_DE());
     h_CYCLES = 8;
 }
 void CPU::opc_1B(uint8_t opc){
@@ -656,7 +656,7 @@ void CPU::opc_29(uint8_t opc){
 }
 void CPU::opc_2A(uint8_t opc){
     // LD A, (HL+)
-    h_A = h_MEMORY.readMemory(h_PC++);
+    h_A = h_MEMORY.readMemory(get_h_HL());
     set_h_HL(get_h_HL() + 1);
     h_CYCLES = 8;
 }
@@ -689,7 +689,7 @@ void CPU::opc_2F(uint8_t opc){
 
 void CPU::opc_30(uint8_t opc){
     // JR NC, i8
-    bool condition = get_flag_C();
+    bool condition = !get_flag_C();
     int8_t offset = h_MEMORY.readMemory(h_PC++);
     conditionalRelativeJump(condition, offset);
 }
@@ -754,7 +754,7 @@ void CPU::opc_39(uint8_t opc){
 }
 void CPU::opc_3A(uint8_t opc){
     // LD A, (HL-)
-    h_A = h_MEMORY.readMemory(h_PC++);
+    h_A = h_MEMORY.readMemory(get_h_HL());
     set_h_HL(get_h_HL() - 1);
     h_CYCLES = 8;
 }
@@ -1533,8 +1533,8 @@ void CPU::opc_E3(uint8_t opc){} // -> empty func (I should add error if empty fu
 void CPU::opc_E4(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
 void CPU::opc_E5(uint8_t opc){
     // PUSH HL
-    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_DE() & 0xff00) >> 8));
-    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_DE() & 0x00ff)));
+    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_HL() & 0xff00) >> 8));
+    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_HL() & 0x00ff)));
     h_CYCLES = 16;
 }
 void CPU::opc_E6(uint8_t opc){
