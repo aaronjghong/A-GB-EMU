@@ -14,7 +14,7 @@ void MMU::writeMemory(uint16_t address, uint8_t data){
 
     // Temporary code to set-up tests with Blargg's instruction rom
     if(address == 0xFF02 && data == 0x81){
-        FILE* out = fopen("FF01.txt", "a");
+        FILE* out = fopen("tests.txt", "a");
         char c = readMemory(0xFF01);
         fwrite(&c, sizeof(c), 1, out);
         fclose(out);

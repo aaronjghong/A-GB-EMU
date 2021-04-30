@@ -31,3 +31,26 @@ If you would like to give this a go, I'd highly recommend the following resource
 -   https://meganesulli.com/generate-gb-opcodes/
 -   https://forums.nesdev.com/viewtopic.php?t=15944 (For DAA instruction)
 -   https://github.com/AntonioND/giibiiadvance/blob/master/docs/TCAGBD.pdf
+
+## Blargg Test Results
+
+-   01-special
+    -   POP AF Failed #5
+-   02-interrupts
+    -   EI Failed #2
+-   03-op sp, hl
+    -   09 08 08 08 Failed
+-   04-op r, imm
+    -   06 0E Failed
+-   05-op rp
+    -   09 09 09 Failed
+-   06-ld r, r
+    -   02 03 Failed
+-   08-misc instrs
+    -   02 02 01 Failed
+-   09-op r, r
+    -   00 01 02 03 04 05 07 08 09 0A 0B 0C 0D 0F 0F 0B 00 0B 01 0B 02 0B 03 0B 04 0B 05 0B 07 0B 00 0B 01 0B 02 0B 03 0B 04 0B 05 0B 07 Failed
+-   10-bit ops
+    -   Passed
+-   11-op a, (hl)
+    -   06 0E 0B 06 0B 06 07 Failed

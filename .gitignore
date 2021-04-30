@@ -2,4 +2,5 @@
 *.gb
 *.zip
 ROMS/
+TESTOUTPUT/
 *.txt

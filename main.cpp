@@ -8,7 +8,7 @@
 
 //CPU cpu("C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/03-op sp,hl.gb");
 
-CPU* cpu = new CPU("C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/06-ld r,r.gb");
+CPU* cpu = new CPU("C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb");
 
 int main(int argc, char* argv[]){
     FILE* out;
