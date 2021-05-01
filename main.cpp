@@ -8,7 +8,7 @@
 
 //CPU cpu("C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/03-op sp,hl.gb");
 
-CPU* cpu = new CPU("C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb");
+CPU* cpu = new CPU("C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/04-op r.gb");
 
 int main(int argc, char* argv[]){
     FILE* out;
@@ -20,12 +20,10 @@ int main(int argc, char* argv[]){
             //breakpoint for testing
             std::cout << "A";
         }
-        if(opcode == 0xcd){
+
+        if(cpu->getPC() == 0xc8fa){
             //breakpoint for testing
-            std::cout <<"A";
-        }
-        if(opcode == 0x00 && prev_opc == 0x00){
-            std::exit;
+            std::cout << "A";
         }
         cpu->executeOpcode(opcode);
         std::cout << opcode;

@@ -9,37 +9,37 @@ CPU::CPU(){
     set_h_DE(0x00D8);
     set_h_HL(0x014D);
     h_SP = 0xFFFE;
-    h_MEMORY.writeMemory(0xFF05, 0x00);
-    h_MEMORY.writeMemory(0xFF06, 0x00);
-    h_MEMORY.writeMemory(0xFF07, 0x00);
-    h_MEMORY.writeMemory(0xFF10, 0x80);
-    h_MEMORY.writeMemory(0xFF11, 0xBF);
-    h_MEMORY.writeMemory(0xFF12, 0xF3);
-    h_MEMORY.writeMemory(0xFF14, 0xBF);
-    h_MEMORY.writeMemory(0xFF16, 0x3F);
-    h_MEMORY.writeMemory(0xFF17, 0x00);
-    h_MEMORY.writeMemory(0xFF19, 0xBF);
-    h_MEMORY.writeMemory(0xFF1A, 0x7F);
-    h_MEMORY.writeMemory(0xFF1B, 0xFF);
-    h_MEMORY.writeMemory(0xFF1C, 0x9F);
-    h_MEMORY.writeMemory(0xFF1E, 0xBF);
-    h_MEMORY.writeMemory(0xFF20, 0xFF);
-    h_MEMORY.writeMemory(0xFF21, 0x00);
-    h_MEMORY.writeMemory(0xFF22, 0x00);
-    h_MEMORY.writeMemory(0xFF23, 0xBF);
-    h_MEMORY.writeMemory(0xFF24, 0x77);
-    h_MEMORY.writeMemory(0xFF25, 0xF3);
-    h_MEMORY.writeMemory(0xFF26, 0xF1);
-    h_MEMORY.writeMemory(0xFF40, 0x91);
-    h_MEMORY.writeMemory(0xFF42, 0x00);
-    h_MEMORY.writeMemory(0xFF43, 0x00);
-    h_MEMORY.writeMemory(0xFF45, 0x00);
-    h_MEMORY.writeMemory(0xFF47, 0xFC);
-    h_MEMORY.writeMemory(0xFF48, 0xFF);
-    h_MEMORY.writeMemory(0xFF49, 0xFF);
-    h_MEMORY.writeMemory(0xFF4A, 0x00);
-    h_MEMORY.writeMemory(0xFF4B, 0x00);
-    h_MEMORY.writeMemory(0xFFFF, 0x00);
+    h_MEMORY.writeMemory(0xFF05, 0x00, true);
+    h_MEMORY.writeMemory(0xFF06, 0x00, true);
+    h_MEMORY.writeMemory(0xFF07, 0x00, true);
+    h_MEMORY.writeMemory(0xFF10, 0x80, true);
+    h_MEMORY.writeMemory(0xFF11, 0xBF, true);
+    h_MEMORY.writeMemory(0xFF12, 0xF3, true);
+    h_MEMORY.writeMemory(0xFF14, 0xBF, true);
+    h_MEMORY.writeMemory(0xFF16, 0x3F, true);
+    h_MEMORY.writeMemory(0xFF17, 0x00, true);
+    h_MEMORY.writeMemory(0xFF19, 0xBF, true);
+    h_MEMORY.writeMemory(0xFF1A, 0x7F, true);
+    h_MEMORY.writeMemory(0xFF1B, 0xFF, true);
+    h_MEMORY.writeMemory(0xFF1C, 0x9F, true);
+    h_MEMORY.writeMemory(0xFF1E, 0xBF, true);
+    h_MEMORY.writeMemory(0xFF20, 0xFF, true);
+    h_MEMORY.writeMemory(0xFF21, 0x00, true);
+    h_MEMORY.writeMemory(0xFF22, 0x00, true);
+    h_MEMORY.writeMemory(0xFF23, 0xBF, true);
+    h_MEMORY.writeMemory(0xFF24, 0x77, true);
+    h_MEMORY.writeMemory(0xFF25, 0xF3, true);
+    h_MEMORY.writeMemory(0xFF26, 0xF1, true);
+    h_MEMORY.writeMemory(0xFF40, 0x91, true);
+    h_MEMORY.writeMemory(0xFF42, 0x00, true);
+    h_MEMORY.writeMemory(0xFF43, 0x00, true);
+    h_MEMORY.writeMemory(0xFF45, 0x00, true);
+    h_MEMORY.writeMemory(0xFF47, 0xFC, true);
+    h_MEMORY.writeMemory(0xFF48, 0xFF, true);
+    h_MEMORY.writeMemory(0xFF49, 0xFF, true);
+    h_MEMORY.writeMemory(0xFF4A, 0x00, true);
+    h_MEMORY.writeMemory(0xFF4B, 0x00, true);
+    h_MEMORY.writeMemory(0xFFFF, 0x00, true);
 }
 
 CPU::CPU(char* dir){
@@ -51,37 +51,38 @@ CPU::CPU(char* dir){
     set_h_DE(0x00D8);
     set_h_HL(0x014D);
     h_SP = 0xFFFE;
-    h_MEMORY.writeMemory(0xFF05, 0x00);
-    h_MEMORY.writeMemory(0xFF06, 0x00);
-    h_MEMORY.writeMemory(0xFF07, 0x00);
-    h_MEMORY.writeMemory(0xFF10, 0x80);
-    h_MEMORY.writeMemory(0xFF11, 0xBF);
-    h_MEMORY.writeMemory(0xFF12, 0xF3);
-    h_MEMORY.writeMemory(0xFF14, 0xBF);
-    h_MEMORY.writeMemory(0xFF16, 0x3F);
-    h_MEMORY.writeMemory(0xFF17, 0x00);
-    h_MEMORY.writeMemory(0xFF19, 0xBF);
-    h_MEMORY.writeMemory(0xFF1A, 0x7F);
-    h_MEMORY.writeMemory(0xFF1B, 0xFF);
-    h_MEMORY.writeMemory(0xFF1C, 0x9F);
-    h_MEMORY.writeMemory(0xFF1E, 0xBF);
-    h_MEMORY.writeMemory(0xFF20, 0xFF);
-    h_MEMORY.writeMemory(0xFF21, 0x00);
-    h_MEMORY.writeMemory(0xFF22, 0x00);
-    h_MEMORY.writeMemory(0xFF23, 0xBF);
-    h_MEMORY.writeMemory(0xFF24, 0x77);
-    h_MEMORY.writeMemory(0xFF25, 0xF3);
-    h_MEMORY.writeMemory(0xFF26, 0xF1);
-    h_MEMORY.writeMemory(0xFF40, 0x91);
-    h_MEMORY.writeMemory(0xFF42, 0x00);
-    h_MEMORY.writeMemory(0xFF43, 0x00);
-    h_MEMORY.writeMemory(0xFF45, 0x00);
-    h_MEMORY.writeMemory(0xFF47, 0xFC);
-    h_MEMORY.writeMemory(0xFF48, 0xFF);
-    h_MEMORY.writeMemory(0xFF49, 0xFF);
-    h_MEMORY.writeMemory(0xFF4A, 0x00);
-    h_MEMORY.writeMemory(0xFF4B, 0x00);
-    h_MEMORY.writeMemory(0xFFFF, 0x00);
+    h_MEMORY.writeMemory(0xFF05, 0x00, true);
+    h_MEMORY.writeMemory(0xFF06, 0x00, true);
+    h_MEMORY.writeMemory(0xFF07, 0x00, true);
+    h_MEMORY.writeMemory(0xFF10, 0x80, true);
+    h_MEMORY.writeMemory(0xFF11, 0xBF, true);
+    h_MEMORY.writeMemory(0xFF12, 0xF3, true);
+    h_MEMORY.writeMemory(0xFF14, 0xBF, true);
+    h_MEMORY.writeMemory(0xFF16, 0x3F, true);
+    h_MEMORY.writeMemory(0xFF17, 0x00, true);
+    h_MEMORY.writeMemory(0xFF19, 0xBF, true);
+    h_MEMORY.writeMemory(0xFF1A, 0x7F, true);
+    h_MEMORY.writeMemory(0xFF1B, 0xFF, true);
+    h_MEMORY.writeMemory(0xFF1C, 0x9F, true);
+    h_MEMORY.writeMemory(0xFF1E, 0xBF, true);
+    h_MEMORY.writeMemory(0xFF20, 0xFF, true);
+    h_MEMORY.writeMemory(0xFF21, 0x00, true);
+    h_MEMORY.writeMemory(0xFF22, 0x00, true);
+    h_MEMORY.writeMemory(0xFF23, 0xBF, true);
+    h_MEMORY.writeMemory(0xFF24, 0x77, true);
+    h_MEMORY.writeMemory(0xFF25, 0xF3, true);
+    h_MEMORY.writeMemory(0xFF26, 0xF1, true);
+    h_MEMORY.writeMemory(0xFF40, 0x91, true);
+    h_MEMORY.writeMemory(0xFF42, 0x00, true);
+    h_MEMORY.writeMemory(0xFF43, 0x00, true);
+    h_MEMORY.writeMemory(0xFF44, 0x90, true);   /* For Testing */ 
+    h_MEMORY.writeMemory(0xFF45, 0x00, true);
+    h_MEMORY.writeMemory(0xFF47, 0xFC, true);
+    h_MEMORY.writeMemory(0xFF48, 0xFF, true);
+    h_MEMORY.writeMemory(0xFF49, 0xFF, true);
+    h_MEMORY.writeMemory(0xFF4A, 0x00, true);
+    h_MEMORY.writeMemory(0xFF4B, 0x00, true);
+    h_MEMORY.writeMemory(0xFFFF, 0x00, true);
 }
 
 CPU::~CPU(){
@@ -92,6 +93,12 @@ uint8_t CPU::getOpcode(){
     uint8_t opc = h_MEMORY.readMemory(h_PC++);
     return opc;
 }
+
+// FOR TESTING OPCODES
+uint16_t CPU::getPC(){
+    return h_PC;
+}
+// REMOVE AFTER DEBUGGING
 
 
 void CPU::executeOpcode(uint8_t opc, bool CB_mode /*= false*/){
@@ -169,7 +176,7 @@ void CPU::call(){
 
 void CPU::conditionalCall(bool condition){
     if(condition) call();
-    else h_CYCLES = 12;
+    else h_CYCLES = 12; h_PC += 2;
 }
 
 void CPU::rst(uint8_t f){
@@ -184,8 +191,8 @@ void CPU::rst(uint8_t f){
 void CPU::add8(uint8_t &target, uint8_t addend){
     set_flag_N(false);
     uint8_t value = target + addend;
-    set_flag_H((((target & 0xf) + (addend & 0xf))) & 0x10 != 0);
-    set_flag_C(value < target); // Overflow has occured
+    set_flag_H((((target & 0xf) + (addend & 0xf)) & 0x10) != 0);
+    set_flag_C(uint16_t(target + addend) > 0xff);
     set_flag_Z(value == 0);
     target = value;
     h_CYCLES = 4; // Set to 8 seperately for edge cases
@@ -193,9 +200,10 @@ void CPU::add8(uint8_t &target, uint8_t addend){
 
 void CPU::adc8(uint8_t &target, uint8_t addend){
     set_flag_N(false);
-    uint8_t value = target + addend + uint8_t(get_flag_C());
-    set_flag_H(((target & 0xf) + (addend & 0xf) + uint8_t(get_flag_C())) & 0x10 != 0);
-    set_flag_C(value < target); // Overflow has occured
+    uint8_t value_C = uint8_t(get_flag_C());
+    uint8_t value = target + addend + value_C;
+    set_flag_H((((target & 0xf) + (addend & 0xf) + value_C) & 0x10) != 0);
+    set_flag_C(uint16_t(target + addend + value_C) > 0xff);
     set_flag_Z(value == 0);
     target = value;
     h_CYCLES = 4;
@@ -213,9 +221,10 @@ void CPU::sub8(uint8_t &target, uint8_t subtrahend){
 
 void CPU::sbc8(uint8_t &target, uint8_t subtrahend){
     set_flag_N(true);
-    uint8_t value = target - subtrahend - uint8_t(get_flag_C());
-    set_flag_H((target & 0xf) < ((subtrahend & 0xf) + uint8_t(get_flag_C())));
-    set_flag_C(target < (subtrahend + uint8_t(get_flag_C())));
+    uint8_t value_C = uint8_t(get_flag_C());
+    uint8_t value = target - subtrahend - value_C;
+    set_flag_H((target & 0xf) < ((subtrahend & 0xf) + value_C));
+    set_flag_C(target < (subtrahend + value_C));
     set_flag_Z(value == 0);
     target = value;
     h_CYCLES = 4; // Set to 8 seperately for edge cases
@@ -270,7 +279,7 @@ void CPU::decrement8(uint8_t &target){
     set_flag_N(true);
     uint8_t value = target - 1;
     set_flag_Z(value == 0);
-    set_flag_H((((target & 0xf) - 1) & 0x10) != 0);
+    set_flag_H((((target & 0xf) - 1) & 0x10) != 0); // Because underflow would occur if half carry is needed
     target = value;
     h_CYCLES = 4; // Set to 12 seperately for edge cases
 }
@@ -398,7 +407,7 @@ void CPU::opc_01(uint8_t opc){
     h_CYCLES = 12;
 }
 void CPU::opc_02(uint8_t opc){
-    // LD (BC), h_A -> Revisit?
+    // LD (BC), h_A
     h_MEMORY.writeMemory(get_h_BC(), h_A);
     h_CYCLES = 8;
 }
@@ -447,8 +456,8 @@ void CPU::opc_08(uint8_t opc){
 void CPU::opc_09(uint8_t opc){
     // ADD HL, BC
     set_flag_N(false);
-    set_flag_C((get_h_BC() + get_h_HL()) < get_h_HL()); // Overflow has occured (should have)
-    set_flag_H(((get_h_BC() & 0x0FFF) + (get_h_HL() & 0x0FFF) & 0x1000 == 0x1000));
+    set_flag_C(uint32_t(get_h_BC() + get_h_HL()) > 0xFFFF);
+    set_flag_H((((get_h_BC() & 0x0FFF) + (get_h_HL() & 0x0FFF)) & 0x1000) == 0x1000);
     set_h_HL(get_h_HL() + get_h_BC());  // Check if overflow or not (for sanity)
     h_CYCLES = 8;
 
@@ -547,8 +556,8 @@ void CPU::opc_18(uint8_t opc){
 void CPU::opc_19(uint8_t opc){
     // ADD HL, DE
     set_flag_N(false);
-    set_flag_C((get_h_DE() + get_h_HL()) < get_h_HL()); // Overflow has occured (should have)
-    set_flag_H(((get_h_DE() & 0x0FFF) + (get_h_HL() & 0x0FFF) & 0x1000 == 0x1000));
+    set_flag_C(uint32_t(get_h_DE() + get_h_HL()) > 0xFFFF);
+    set_flag_H(((get_h_DE() & 0x0FFF) + (get_h_HL() & 0x0FFF) & 0x1000) == 0x1000);
     set_h_HL(get_h_HL() + get_h_DE());  // Check if overflow or not (for sanity)
     h_CYCLES = 8;
 }
@@ -649,8 +658,8 @@ void CPU::opc_28(uint8_t opc){
 void CPU::opc_29(uint8_t opc){
     // ADD HL, HL
     set_flag_N(false);
-    set_flag_C((get_h_HL() + get_h_HL()) < get_h_HL()); // Overflow has occured (should have)
-    set_flag_H(((get_h_HL() & 0x0FFF) + (get_h_HL() & 0x0FFF) & 0x1000 == 0x1000));
+    set_flag_C(uint32_t(get_h_HL() + get_h_HL()) > 0xFFFF);
+    set_flag_H(((get_h_HL() & 0x0FFF) + (get_h_HL() & 0x0FFF) & 0x1000) == 0x1000);
     set_h_HL(get_h_HL() + get_h_HL());  // Check if overflow or not (for sanity)
     h_CYCLES = 8;
 }
@@ -747,8 +756,8 @@ void CPU::opc_38(uint8_t opc){
 void CPU::opc_39(uint8_t opc){
     // ADD HL, SP
     set_flag_N(false);
-    set_flag_C((h_SP + get_h_HL() < h_SP)); // Overflow has occured (should have)
-    set_flag_H(((h_SP & 0x0FFF) + (get_h_HL() & 0x0FFF) & 0x1000 == 0x1000));
+    set_flag_C(uint32_t(h_SP + get_h_HL()) > 0xFFFF); // Overflow has occured (should have)
+    set_flag_H(((h_SP & 0x0FFF) + (get_h_HL() & 0x0FFF) & 0x1000) == 0x1000);
     set_h_HL(h_SP + get_h_HL());  // Check if overflow or not (for sanity)
     h_CYCLES = 8;
 }
@@ -780,7 +789,7 @@ void CPU::opc_3F(uint8_t opc){
     // CCF
     set_flag_H(false);
     set_flag_N(false);
-    set_flag_C(int(get_flag_C())^1);
+    set_flag_C(get_flag_C() ? false : true);
     h_CYCLES = 4;
 }
 
@@ -1397,12 +1406,12 @@ void CPU::opc_C3(uint8_t opc){
 }
 void CPU::opc_C4(uint8_t opc){
     // CALL NZ, u16
-    conditionalCall(!get_flag_C());
+    conditionalCall(!get_flag_Z());
 }
 void CPU::opc_C5(uint8_t opc){
     // PUSH BC
-    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_BC() & 0xff00) >> 8));
-    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_BC() & 0x00ff)));
+    h_MEMORY.writeMemory(--h_SP, h_B);
+    h_MEMORY.writeMemory(--h_SP, h_C);
     h_CYCLES = 16;
 }
 void CPU::opc_C6(uint8_t opc){
@@ -1471,8 +1480,8 @@ void CPU::opc_D4(uint8_t opc){
 }
 void CPU::opc_D5(uint8_t opc){
     // PUSH DE
-    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_DE() & 0xff00) >> 8));
-    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_DE() & 0x00ff)));
+    h_MEMORY.writeMemory(--h_SP, h_D);
+    h_MEMORY.writeMemory(--h_SP, h_E);
     h_CYCLES = 16;
 }
 void CPU::opc_D6(uint8_t opc){
@@ -1533,8 +1542,8 @@ void CPU::opc_E3(uint8_t opc){} // -> empty func (I should add error if empty fu
 void CPU::opc_E4(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
 void CPU::opc_E5(uint8_t opc){
     // PUSH HL
-    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_HL() & 0xff00) >> 8));
-    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_HL() & 0x00ff)));
+    h_MEMORY.writeMemory(--h_SP, h_H);
+    h_MEMORY.writeMemory(--h_SP, h_L);
     h_CYCLES = 16;
 }
 void CPU::opc_E6(uint8_t opc){
@@ -1550,9 +1559,10 @@ void CPU::opc_E8(uint8_t opc){
     // ADD SP, i8 -> double check this one
     set_flag_N(false);
     set_flag_Z(false);
-    set_flag_H((h_SP & 0xF + int8_t(h_MEMORY.readMemory(h_PC)) & 0xF) & 0x10 != 0);
-    set_flag_C((h_SP & 0xFF + int8_t(h_MEMORY.readMemory(h_PC))) & 0x100 != 0);
-    h_SP += int8_t(h_MEMORY.readMemory(h_PC++));
+    int8_t value = h_MEMORY.readMemory(h_PC++);
+    set_flag_H((((h_SP & 0xF) + (value & 0xF)) & 0x10) != 0);
+    set_flag_C((((h_SP & 0xFF) + value) & 0x100) != 0);
+    h_SP += value;
     h_CYCLES = 16;
 }
 void CPU::opc_E9(uint8_t opc){
@@ -1606,8 +1616,8 @@ void CPU::opc_F3(uint8_t opc){
 void CPU::opc_F4(uint8_t opc){} // -> empty func (I should add error if empty funcs are called?)
 void CPU::opc_F5(uint8_t opc){
     // PUSH AF
-    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_AF() & 0xff00) >> 8));
-    h_MEMORY.writeMemory(--h_SP, uint8_t((get_h_AF() & 0x00ff)));
+    h_MEMORY.writeMemory(--h_SP, h_A);
+    h_MEMORY.writeMemory(--h_SP, h_F);
     h_CYCLES = 16;
 }
 void CPU::opc_F6(uint8_t opc){
@@ -1621,11 +1631,12 @@ void CPU::opc_F7(uint8_t opc){
 }
 void CPU::opc_F8(uint8_t opc){
     // LD HL, SP+i8 -> double check  this too
+    int8_t value = h_MEMORY.readMemory(h_PC++);
     set_flag_N(false);
     set_flag_Z(false);
-    set_flag_H((h_SP & 0x0F + int8_t(h_MEMORY.readMemory(h_PC)) & 0xF) & 0x10 != 0);
-    set_flag_C((h_SP & 0xFF + int8_t(h_MEMORY.readMemory(h_PC))) & 0x100 != 0);
-    set_h_HL(h_SP + int8_t(h_MEMORY.readMemory(h_PC++)));
+    set_flag_H((((h_SP & 0x0F) + (value & 0xF)) & 0x10) != 0);
+    set_flag_C((((h_SP & 0xFF) + value) & 0x100) != 0);
+    set_h_HL(h_SP + value);
     h_CYCLES = 12;
 }
 void CPU::opc_F9(uint8_t opc){

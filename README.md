@@ -11,15 +11,16 @@ A-GB-EMU (Aaron's Gameboy Emulator) is an ongoing project where I delve deeper i
 
 ## Next steps
 
--   Test Opcodes
+-   Start work on PPU
 -   Continue working with memory (memory control, memory banking, boot rom, etc.)
--   Learn about Gameboy's display (PPU)
+-   Test Opcodes (ON HOLD)
+    -   After testing Opcode implementations, I've realized that there were many discrepancies between a working GB emulator and my own due to the lack implemenation of the PPU and proper memory control. This will be returned to once the PPU and Memory are sufficiently implemented to do so.
+-   Clean up inconsistencies within Opcode Functions and look to simplify function calls
 -   Get timings correct
 -   Implement interrupts
 -   Implement graphics
 -   Connect to SDL and implement controls
 -   Implement sound
--   Clean up inconsistencies within Opcode Functions and look to simplify function calls (for ex. use h_B and h_C instead of getting msb from BC getter function)
 
 ## Resources I'm using
 
@@ -35,22 +36,24 @@ If you would like to give this a go, I'd highly recommend the following resource
 ## Blargg Test Results
 
 -   01-special
-    -   POP AF Failed #5
+    -   ?
 -   02-interrupts
-    -   EI Failed #2
+    -   ?
 -   03-op sp, hl
-    -   09 08 08 08 Failed
+    -   ?
 -   04-op r, imm
     -   06 0E Failed
 -   05-op rp
     -   09 09 09 Failed
 -   06-ld r, r
     -   02 03 Failed
+-   07-jr,jp,call,ret,rst
+    -   Uncertain?
 -   08-misc instrs
-    -   02 02 01 Failed
+    -   02 02 Failed
 -   09-op r, r
-    -   00 01 02 03 04 05 07 08 09 0A 0B 0C 0D 0F 0F 0B 00 0B 01 0B 02 0B 03 0B 04 0B 05 0B 07 0B 00 0B 01 0B 02 0B 03 0B 04 0B 05 0B 07 Failed
+    -   0F 0B 00 0B 01 0B 02 0B 03 0B 04 0B 05 0B 07 0B 00 0B 01 0B 02 0B 03 0B 04 0B 05 0B 07 Failed
 -   10-bit ops
-    -   Passed
+    -   Passed?
 -   11-op a, (hl)
-    -   06 0E 0B 06 0B 06 07 Failed
+    -   0B 06 0B 06 07 Failed

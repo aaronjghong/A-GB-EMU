@@ -15,6 +15,10 @@ class CPU{
         CPU(char* dir); // REMOVE THIS CONSTRUCTOR WHEN IMPLEMENTING MEMORY AND RE-IMPLEMENT LOAD ELSEWHERE
         ~CPU();
         
+        // FOR TESTING OPCODES
+        uint16_t getPC();
+        // REMOVE AFTER DEBUGGING
+
         uint8_t getOpcode();
         void executeOpcode(uint8_t opc, bool CB_mode = false);
 
@@ -27,9 +31,7 @@ class CPU{
 
     private:
 
-
-
-        uint8_t h_SCREENDATA[160][144][4];  // 160x144 Monitor with 4 gray shades
+        uint8_t h_SCREENDATA[160][144][2];  // 160x144 Monitor with 2bpp format
 
         uint8_t h_A;    // Accumulator Register
         uint8_t h_F;    // Flag Register
@@ -50,7 +52,7 @@ class CPU{
             return (h_A << 8) | h_F;
         }
         void  set_h_AF(uint16_t data){
-            h_F = data & 0x00FF;
+            h_F = data & 0x00F0;    // CANNOT WRITE TO LOWER 4 BITS OF F FLAG
             h_A = (data >> 8) & 0x00FF; // bitwise and likely not needed here 
         }
 
