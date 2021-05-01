@@ -36,19 +36,19 @@ If you would like to give this a go, I'd highly recommend the following resource
 ## Blargg Test Results
 
 -   01-special
-    -   ?
+    -   09 06 06 0C Failed
 -   02-interrupts
-    -   ?
+    -   ? -> no output
 -   03-op sp, hl
-    -   ?
+    -   08 08 Failed
 -   04-op r, imm
-    -   06 0E Failed
+    -   ? -> no output
 -   05-op rp
-    -   09 09 09 Failed
+    -   ? -> no output
 -   06-ld r, r
     -   02 03 Failed
 -   07-jr,jp,call,ret,rst
-    -   Uncertain?
+    -   04 0c 04 0c Failed
 -   08-misc instrs
     -   02 02 Failed
 -   09-op r, r
@@ -57,3 +57,5 @@ If you would like to give this a go, I'd highly recommend the following resource
     -   Passed?
 -   11-op a, (hl)
     -   0B 06 0B 06 07 Failed
+
+_No output either means a pass or the emulator ran into an infinite loop_
