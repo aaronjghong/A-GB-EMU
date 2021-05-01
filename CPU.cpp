@@ -131,7 +131,7 @@ void CPU::relativeJump(int8_t offset){
 
 void CPU::conditionalPositionJump(bool condition){
     if(condition) positionJump();
-    else h_CYCLES = 12;
+    else h_CYCLES = 12; h_PC += 2;
 }
 
 void CPU::positionJump(){
