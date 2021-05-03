@@ -33,6 +33,8 @@ If you would like to give this a go, I'd highly recommend the following resource
 -   https://meganesulli.com/generate-gb-opcodes/
 -   https://forums.nesdev.com/viewtopic.php?t=15944 (For DAA instruction)
 -   https://github.com/AntonioND/giibiiadvance/blob/master/docs/TCAGBD.pdf
+-   https://hacktix.github.io/GBEDG
+-   https://codeslinger.co.uk
 
 ## Blargg Test Results
 
