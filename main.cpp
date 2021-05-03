@@ -7,8 +7,8 @@
 // Todo
 
 //CPU cpu("C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/03-op sp,hl.gb");
-
-CPU* cpu = new CPU("C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/11-op a,(hl).gb");
+std::string game_dir = "C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/11-op a,(hl).gb";
+CPU* cpu = new CPU(&game_dir[0]);
 PPU* ppu = new PPU(cpu);
 
 

@@ -14,6 +14,8 @@ class MMU{
         void writeMemory(uint16_t address, uint8_t data, bool init = false);
         uint8_t memory[0x10000];
     private:
+        void doDMATransfer(uint8_t data);
+
         // Memory Map
         // 0000-3FFF 16KB ROM Bank 00 (in cartridge, fixed at bank 00)
         // 4000-7FFF 16KB ROM Bank 01..NN (in cartridge, switchable bank number)

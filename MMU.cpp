@@ -33,7 +33,8 @@ void MMU::writeMemory(uint16_t address, uint8_t data, bool init /* = false */){
             case 0xFF23: memory[address] = (memory[address] & 0b00111111) | (data & 0b11000000); break;
             case 0xFF26: memory[address] = (memory[address] & 0b01111111) | (data & 0b10000000); break;
             case 0xFF41: memory[address] = (memory[address] & 0b10000111) | (data & 0b01111000); break;
-            case 0xFF44: /* Read Only */                                                         break;
+            case 0xFF44: memory[address] = 0;                                                    break;
+            case 0xFF46: doDMATransfer(data);                                                    break;
             case 0xFFFF: memory[address] = (memory[address] & 0b11100000) | (data & 0b00011111); break;
 
             default: memory[address] = data; break;
@@ -72,4 +73,11 @@ void MMU::loadGame(char* dir){
     //     i++;
     // }
     fclose(in);
+}
+
+void MMU::doDMATransfer(uint8_t data){
+    uint16_t address = data << 8;
+    for(int i = 0; i < 0xA0; i++){
+        memory[0xFE00 + i] = memory[address + i];
+    }
 }

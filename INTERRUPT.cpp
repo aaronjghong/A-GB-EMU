@@ -27,14 +27,17 @@ void INTERRUPT::doInterrupts(){
         if(IF != 0){
             for(int i = 0; i < 4; i++){
                 if(((IF >> i) & 0b00000001) != 0){
-                    // Interrupt is detected, service interrupt
-                    serviceInterrupt(i);
+                    if(((IE >> i) & 0b00000001) != 0){
+                        // Interrupt detected, enabled and must be serviced
+                        serviceInterrupt(i);
+                    }
                 }
             }
         }
     }
 }
 void INTERRUPT::serviceInterrupt(int interrupt){
+    // Disable interrupts, disable interrupt request bit, push PC and jump to appropriate interrupt address
     IME = false;
     uint8_t mask = (1 << interrupt)^0b11111111;
     IF &= mask;
