@@ -23,17 +23,18 @@ void MMU::writeMemory(uint16_t address, uint8_t data, bool init /* = false */){
         switch (address){
             case 0xFF00: memory[address] = (memory[address] & 0b11001111) | (data & 0b00110000); break;
             case 0xFF02: memory[address] = (memory[address] & 0b01111100) | (data & 0b10000011); break;
+            case 0xFF04: memory[address] = 0;                                                    break;
+            case 0xFF07: memory[address] = (memory[address] & 0b11111000) | (data & 0b00000111); break;
+            case 0xFF0F: memory[address] = (memory[address] & 0b11100000) | (data & 0b00011111); break;
             case 0xFF10: memory[address] = (memory[address] & 0b10000000) | (data & 0b01111111); break;
             case 0xFF1A: memory[address] = (memory[address] & 0b01111111) | (data & 0b10000000); break;
             case 0xFF1C: memory[address] = (memory[address] & 0b10011111) | (data & 0b01100000); break;
             case 0xFF21: memory[address] = (memory[address] & 0b11000000) | (data & 0b00111111); break;
             case 0xFF23: memory[address] = (memory[address] & 0b00111111) | (data & 0b11000000); break;
             case 0xFF26: memory[address] = (memory[address] & 0b01111111) | (data & 0b10000000); break;
-            case 0xFF07: memory[address] = (memory[address] & 0b11111000) | (data & 0b00000111); break;
-            case 0xFF0F: memory[address] = (memory[address] & 0b11100000) | (data & 0b00011111); break;
             case 0xFF41: memory[address] = (memory[address] & 0b10000111) | (data & 0b01111000); break;
+            case 0xFF44: /* Read Only */                                                         break;
             case 0xFFFF: memory[address] = (memory[address] & 0b11100000) | (data & 0b00011111); break;
-            case 0xFF44: /* Read Only */ break;
 
             default: memory[address] = data; break;
         }

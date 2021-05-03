@@ -8,18 +8,19 @@ A-GB-EMU (Aaron's Gameboy Emulator) is an ongoing project where I delve deeper i
 -   Opcode arrays (for fetch and decode)
 -   Implementation of all Opcodes in code
 -   Start of proper memory implementation
+-   Implemented Interrupts (not confident in my implementation)
+-   Implemented Timer (not confident in my implementation)
+-   First steps of PPU
 
 ## Next steps
 
--   Start work on PPU
+-   Continue working on PPU
+-   Connect to SDL and implement controls
+-   Get timings correct
 -   Continue working with memory (memory control, memory banking, boot rom, etc.)
 -   Test Opcodes (ON HOLD)
     -   After testing Opcode implementations, I've realized that there were many discrepancies between a working GB emulator and my own due to the lack implemenation of the PPU and proper memory control. This will be returned to once the PPU and Memory are sufficiently implemented to do so.
 -   Clean up inconsistencies within Opcode Functions and look to simplify function calls
--   Get timings correct
--   Implement interrupts
--   Implement graphics
--   Connect to SDL and implement controls
 -   Implement sound
 
 ## Resources I'm using

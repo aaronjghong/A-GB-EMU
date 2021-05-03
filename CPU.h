@@ -1,9 +1,12 @@
+#pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
 #include <string.h>
 #include "MMU.h"
+#include "TIMER.h"
 
 class CPU{
 
@@ -29,7 +32,13 @@ class CPU{
 
         MMU h_MEMORY;    // CPU's Memory
 
+        INTERRUPT *interrupts = new INTERRUPT(&h_MEMORY.memory[0xFF00], h_MEMORY, h_PC, h_SP);
+        TIMER *timer = new TIMER(&h_MEMORY.memory[0xFF04], interrupts);
+
     private:
+
+        uint16_t h_SP;   // Stack Pointer
+        uint16_t h_PC;   // Program Counter
 
         uint8_t h_SCREENDATA[160][144][2];  // 160x144 Monitor with 2bpp format
 
@@ -37,13 +46,11 @@ class CPU{
         uint8_t h_F;    // Flag Register
         uint8_t h_B, h_C, h_D, h_E, h_H, h_L;    // 8-bit Data Registers
 
-        uint16_t h_SP;   // Stack Pointer
-        uint16_t h_PC;   // Program Counter
-
-        bool h_IME = false;   // IME Flag (interrupt master enable)
+        bool &h_IME = interrupts->IME;   // IME Flag (interrupt master enable)
         bool i_scheduled = false;   // For EI opcode -> Enable interrupts at the next machine cycle
-        uint8_t h_IE = h_MEMORY.memory[0xFFFF];    // IE Register
-        uint8_t h_IF = h_MEMORY.memory[0xFF0F];    // IF Flag
+        
+        uint8_t *h_IE = &h_MEMORY.memory[0xFFFF];    // IE Register
+        uint8_t *h_IF = &h_MEMORY.memory[0xFF0F];    // IF Flag
 
         /* 16-bit Register Functions */
 
