@@ -1,6 +1,9 @@
 #include "INTERRUPT.h"
 
-INTERRUPT::INTERRUPT(uint8_t* zero_page, MMU& memory, uint16_t& h_PC, uint16_t& h_SP){
+INTERRUPT::INTERRUPT(uint8_t* zero_page, MMU& memory, uint16_t& h_PC, uint16_t& h_SP)
+    :IE(memory.memory[0xFFFF]),
+    IF(memory.memory[0xFF0F])
+{
     FF00 = zero_page;
     cpu_MEMORY = memory;
     cpu_PC = h_PC;

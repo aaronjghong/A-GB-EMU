@@ -2,6 +2,8 @@
 
 A-GB-EMU (Aaron's Gameboy Emulator) is an ongoing project where I delve deeper into emulation by attempting to make an emulator for the original gameboy.
 
+![Image of Doctor Mario Title Screen](PPUsuccess.png)
+
 ## What's been done
 
 -   First steps of hardware implementation in code
@@ -10,12 +12,12 @@ A-GB-EMU (Aaron's Gameboy Emulator) is an ongoing project where I delve deeper i
 -   Start of proper memory implementation
 -   Implemented Interrupts (not confident in my implementation)
 -   Implemented Timer (not confident in my implementation)
--   First steps of PPU
+-   Continue working on PPU
+-   Connected to SDL
 
 ## Next steps
 
--   Continue working on PPU
--   Connect to SDL and implement controls
+-   Implement SDL Polling and controls
 -   Get timings correct
 -   Continue working with memory (memory control, memory banking, boot rom, etc.)
 -   Test Opcodes (ON HOLD)

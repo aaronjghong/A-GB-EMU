@@ -25,10 +25,10 @@ class TIMER{
 
         int DIV_counter = 0;
 
-        uint8_t &DIV = r_TIMERS[0];
-        uint8_t &TIMA = r_TIMERS[1];
-        uint8_t &TMA = r_TIMERS[2];
-        uint8_t &TAC = r_TIMERS[3];
+        uint8_t &DIV;// = r_TIMERS[0];
+        uint8_t &TIMA;// = r_TIMERS[1];
+        uint8_t &TMA;// = r_TIMERS[2];
+        uint8_t &TAC;// = r_TIMERS[3];
 
         INTERRUPT *interrupt;
 };

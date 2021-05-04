@@ -12,8 +12,8 @@ class INTERRUPT{
         bool IME = false;
     private:
         uint8_t* FF00;
-        uint8_t &IE = FF00[0xFF];
-        uint8_t &IF = FF00[0X0F];
+        uint8_t &IE;
+        uint8_t &IF;
         uint16_t cpu_PC;
         uint16_t cpu_SP;
         MMU cpu_MEMORY;

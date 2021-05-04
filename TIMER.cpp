@@ -1,6 +1,11 @@
 #include "TIMER.h"
 
-TIMER::TIMER(uint8_t* FF04, INTERRUPT *interrupts){
+TIMER::TIMER(uint8_t* FF04, INTERRUPT *interrupts)
+    :DIV(FF04[0]),
+    TIMA(FF04[1]),
+    TMA(FF04[2]),
+    TAC(FF04[3])
+{
     r_TIMERS = FF04;
     interrupt = interrupts;
 }
