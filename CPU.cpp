@@ -54,6 +54,7 @@ CPU::CPU(char* dir){
     h_MEMORY.writeMemory(0xFF05, 0x00, true);
     h_MEMORY.writeMemory(0xFF06, 0x00, true);
     h_MEMORY.writeMemory(0xFF07, 0x00, true);
+    h_MEMORY.writeMemory(0xFF0F, 0xe1, true);
     h_MEMORY.writeMemory(0xFF10, 0x80, true);
     h_MEMORY.writeMemory(0xFF11, 0xBF, true);
     h_MEMORY.writeMemory(0xFF12, 0xF3, true);
@@ -73,9 +74,10 @@ CPU::CPU(char* dir){
     h_MEMORY.writeMemory(0xFF25, 0xF3, true);
     h_MEMORY.writeMemory(0xFF26, 0xF1, true);
     h_MEMORY.writeMemory(0xFF40, 0x91, true);
+    h_MEMORY.writeMemory(0xFF41, 0x85, true);
     h_MEMORY.writeMemory(0xFF42, 0x00, true);
     h_MEMORY.writeMemory(0xFF43, 0x00, true);
-    h_MEMORY.writeMemory(0xFF44, 0x90, true);   /* For Testing */ 
+    //h_MEMORY.writeMemory(0xFF44, 0x90, true);   /* For Testing */ 
     h_MEMORY.writeMemory(0xFF45, 0x00, true);
     h_MEMORY.writeMemory(0xFF47, 0xFC, true);
     h_MEMORY.writeMemory(0xFF48, 0xFF, true);
@@ -131,7 +133,7 @@ void CPU::relativeJump(int8_t offset){
 
 void CPU::conditionalPositionJump(bool condition){
     if(condition) positionJump();
-    else h_CYCLES = 12; h_PC += 2;
+    else {h_CYCLES = 12; h_PC += 2;}
 }
 
 void CPU::positionJump(){
@@ -176,7 +178,7 @@ void CPU::call(){
 
 void CPU::conditionalCall(bool condition){
     if(condition) call();
-    else h_CYCLES = 12; h_PC += 2;
+    else {h_CYCLES = 12; h_PC += 2;}
 }
 
 void CPU::rst(uint8_t f){
@@ -591,7 +593,7 @@ void CPU::opc_1F(uint8_t opc){
     set_flag_N(false);
     set_flag_Z(false);
 
-    bool bit7 = get_flag_C();
+    uint8_t bit7 = get_flag_C() << 7;
     set_flag_C((h_A & 0b00000001) != 0);
     h_A = (h_A >> 1) | bit7;
     h_CYCLES = 4;
@@ -2809,4 +2811,68 @@ void CPU::opc_CB_FE(uint8_t opc){
 void CPU::opc_CB_FF(uint8_t opc){
     // SET 7, A
     set8(7, h_A);
+}
+
+void CPU::handleInput(uint8_t key, bool pressed){
+    if(pressed){
+        bool newlySet = false;
+        switch (key){
+            case 0:{ // Right
+                newlySet = (h_MEMORY.memory[0xFF00] & 0b00000001);
+                h_MEMORY.memory[0xFF00] &= 0b11111110; 
+                break; 
+            } 
+            case 1:{ // Left
+                newlySet = (h_MEMORY.memory[0xFF00] & 0b00000010);
+                h_MEMORY.memory[0xFF00] &= 0b11111101; 
+                break; 
+            } 
+            case 2:{ // Up
+                newlySet = (h_MEMORY.memory[0xFF00] & 0b00000100);
+                h_MEMORY.memory[0xFF00] &= 0b11111011; 
+                break; 
+            } 
+            case 3:{ // Down
+                newlySet = (h_MEMORY.memory[0xFF00] & 0b00001000);
+                h_MEMORY.memory[0xFF00] &= 0b11110111; 
+                break; 
+            } 
+            case 4:{ // A
+                newlySet = (h_MEMORY.memory[0xFF00] & 0b00000001);
+                h_MEMORY.memory[0xFF00] &= 0b11111110; 
+                break; 
+            } 
+            case 5:{ // B
+                newlySet = (h_MEMORY.memory[0xFF00] & 0b00000010);
+                h_MEMORY.memory[0xFF00] &= 0b11111101; 
+                break; 
+            } 
+            case 6:{ // Select
+                newlySet = (h_MEMORY.memory[0xFF00] & 0b00000100);
+                h_MEMORY.memory[0xFF00] &= 0b11111011; 
+                break; 
+            } 
+            case 7:{ // Start
+                newlySet = (h_MEMORY.memory[0xFF00] & 0b00001000);
+                h_MEMORY.memory[0xFF00] &= 0b11110111; 
+                break; 
+            } 
+        }
+        bool interruptNeeded = false;
+        if((key <= 3) && !(h_MEMORY.memory[0xFF00] & 0b00010000)) interruptNeeded = true;
+        else if((key > 3) && !(h_MEMORY.memory[0xFF00] & 0b00100000)) interruptNeeded = true;
+        if(interruptNeeded && newlySet) interrupts->requestInterrupt(4);
+    }
+    else{
+        switch (key){
+            case 0: h_MEMORY.memory[0xFF00] |= 0b00000001; break;  // Right
+            case 1: h_MEMORY.memory[0xFF00] |= 0b00000010; break;  // Left
+            case 2: h_MEMORY.memory[0xFF00] |= 0b00000100; break;  // Up
+            case 3: h_MEMORY.memory[0xFF00] |= 0b00001000; break;  // Down
+            case 4: h_MEMORY.memory[0xFF00] |= 0b00000001; break;  // A
+            case 5: h_MEMORY.memory[0xFF00] |= 0b00000010; break;  // B
+            case 6: h_MEMORY.memory[0xFF00] |= 0b00000100; break;  // Select
+            case 7: h_MEMORY.memory[0xFF00] |= 0b00001000; break;  // Start
+        }
+    }
 }

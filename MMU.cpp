@@ -5,6 +5,22 @@
 
 uint8_t &MMU::readMemory(uint16_t address){
     switch (address){
+        // case 0xFF00:{
+        //     uint8_t result = memory[0xFF00];
+        //     result ^= 0b11111111;
+        //     if(!result & 0b00100000){
+        //         uint8_t upperNibble = inputState >> 4;
+        //         upperNibble |= 0b11110000;
+        //         result &= upperNibble;
+        //     }
+        //     else if(!result & 0b00010000){
+        //         uint8_t lowerNibble = (inputState & 0b00001111);
+        //         lowerNibble |= 0b11110000;
+        //         result &= lowerNibble;
+        //     }
+        //     return result;
+        //     break;
+        // }
         
         // case 0xFF13: /* Write Only */ break;
         // case 0xFF14: return memory[address] & 0b01111000; break;
@@ -21,18 +37,34 @@ uint8_t &MMU::readMemory(uint16_t address){
 void MMU::writeMemory(uint16_t address, uint8_t data, bool init /* = false */){
     if(!init){
         switch (address){
-            case 0xFF00: memory[address] = (memory[address] & 0b11001111) | (data & 0b00110000); break;
-            case 0xFF02: memory[address] = (memory[address] & 0b01111100) | (data & 0b10000011); break;
+            // case 0xFF00: memory[address] = (memory[address] & 0b11001111) | (data & 0b00110000); break;
+            // case 0xFF02: memory[address] = (memory[address] & 0b01111100) | (data & 0b10000011); break;
+            // case 0xFF04: memory[address] = 0;                                                    break;
+            // case 0xFF07: memory[address] = (memory[address] & 0b11111000) | (data & 0b00000111); break;
+            // case 0xFF0F: memory[address] = (memory[address] & 0b11100000) | (data & 0b00011111); break;
+            // case 0xFF10: memory[address] = (memory[address] & 0b10000000) | (data & 0b01111111); break;
+            // case 0xFF1A: memory[address] = (memory[address] & 0b01111111) | (data & 0b10000000); break;
+            // case 0xFF1C: memory[address] = (memory[address] & 0b10011111) | (data & 0b01100000); break;
+            // case 0xFF21: memory[address] = (memory[address] & 0b11000000) | (data & 0b00111111); break;
+            // case 0xFF23: memory[address] = (memory[address] & 0b00111111) | (data & 0b11000000); break;
+            // case 0xFF26: memory[address] = (memory[address] & 0b01111111) | (data & 0b10000000); break;
+            // case 0xFF41: memory[address] = (memory[address] & 0b10000111) | (data & 0b01111000); break;
+            // case 0xFF44: memory[address] = 0;                                                    break;
+            // case 0xFF46: doDMATransfer(data);                                                    break;
+            // case 0xFFFF: memory[address] = (memory[address] & 0b11100000) | (data & 0b00011111); break;
+
+            case 0xFF00: memory[address] = (0b11001111) | (data & 0b00110000); break;
+            case 0xFF02: memory[address] = (0b01111100) | (data & 0b10000011); break;
             case 0xFF04: memory[address] = 0;                                                    break;
-            case 0xFF07: memory[address] = (memory[address] & 0b11111000) | (data & 0b00000111); break;
-            case 0xFF0F: memory[address] = (memory[address] & 0b11100000) | (data & 0b00011111); break;
-            case 0xFF10: memory[address] = (memory[address] & 0b10000000) | (data & 0b01111111); break;
-            case 0xFF1A: memory[address] = (memory[address] & 0b01111111) | (data & 0b10000000); break;
-            case 0xFF1C: memory[address] = (memory[address] & 0b10011111) | (data & 0b01100000); break;
-            case 0xFF21: memory[address] = (memory[address] & 0b11000000) | (data & 0b00111111); break;
-            case 0xFF23: memory[address] = (memory[address] & 0b00111111) | (data & 0b11000000); break;
-            case 0xFF26: memory[address] = (memory[address] & 0b01111111) | (data & 0b10000000); break;
-            case 0xFF41: memory[address] = (memory[address] & 0b10000111) | (data & 0b01111000); break;
+            case 0xFF07: memory[address] = (0b11111000) | (data & 0b00000111); break;
+            case 0xFF0F: memory[address] = (0b11100000) | (data & 0b00011111); break;
+            case 0xFF10: memory[address] = (0b10000000) | (data & 0b01111111); break;
+            case 0xFF1A: memory[address] = (0b01111111) | (data & 0b10000000); break;
+            case 0xFF1C: memory[address] = (0b10011111) | (data & 0b01100000); break;
+            case 0xFF21: memory[address] = (0b11000000) | (data & 0b00111111); break;
+            case 0xFF23: memory[address] = (0b00111111) | (data & 0b11000000); break;
+            case 0xFF26: memory[address] = (0b01111111) | (data & 0b10000000); break;
+            case 0xFF41: memory[address] = (0b10000111) | (data & 0b01111000); break;
             case 0xFF44: memory[address] = 0;                                                    break;
             case 0xFF46: doDMATransfer(data);                                                    break;
             case 0xFFFF: memory[address] = (memory[address] & 0b11100000) | (data & 0b00011111); break;

@@ -9,7 +9,7 @@
 const int MAXCYCLES = 69905;
 
 //CPU cpu("C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/03-op sp,hl.gb");
-std::string game_dir = "C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/dm.gb";
+std::string game_dir = "C:/Users/Aaron Hong/Desktop/GB/ROMS/cpu_instrs/individual/02-interrupts.gb";
 CPU* cpu = new CPU(&game_dir[0]);
 PPU* ppu = new PPU(cpu);
 
@@ -21,34 +21,51 @@ void init();
 
 void draw();
 
+void getInput(SDL_Event event);
+
 int main(int argc, char* argv[]){
     init();
     ppu->init();
     FILE* out;
     out = fopen("out.txt", "w");
-    uint8_t prev_opc;
     int currentCycles = 0;
     bool quit = false;
+    SDL_Event event;
+    Uint32 time1 = SDL_GetTicks();
     while(!quit){
-        while(currentCycles < MAXCYCLES){
-            uint8_t opcode = cpu->getOpcode();
-            if(opcode != 0x00){
-                //breakpoint for testing
-                std::cout << "A";
-            }
 
-            if(cpu->getPC() == 0xc8fa){
-                //breakpoint for testing
-                std::cout << "A";
+        // while(SDL_PollEvent(&event)){
+        //     getInput(event);
+        //     if(event.type == SDL_QUIT){
+        //         quit = true;
+        //     }
+        // }
+
+        Uint32 time2 = SDL_GetTicks();
+
+        if(time1 + (1000/60) < time2){
+            while(currentCycles < MAXCYCLES){
+                uint8_t opcode = cpu->getOpcode();
+                if(opcode != 0x00){
+                    //breakpoint for testing
+                    std::cout << "A";
+                }
+
+                if(cpu->getPC() == 0xc001){
+                    //breakpoint for testing
+                    std::cout << "A";
+                }
+                cpu->interrupts->doInterrupts();
+                cpu->executeOpcode(opcode);
+                cpu->timer->updateTimers(cpu->h_CYCLES);
+                ppu->updateGraphics(cpu->h_CYCLES);
+                currentCycles+= cpu->h_CYCLES;
+                
             }
-            cpu->executeOpcode(opcode);
-            cpu->timer->updateTimers(cpu->h_CYCLES);
-            ppu->updateGraphics(cpu->h_CYCLES);
-            cpu->interrupts->doInterrupts();
-            currentCycles+= cpu->h_CYCLES;
+            draw();
+            currentCycles = 0;
+            time1 = time2;
         }
-        draw();
-        currentCycles = 0;
     }
     fclose(out);
     return 0;
@@ -64,19 +81,6 @@ void init(){
 }
 
 void draw(){
-    // uint8_t testArr[160][144][4];
-    // for(int i = 0; i < 160; i++){
-    //     for(int j = 0; j < 144; j++){
-    //         testArr[i][j][0] = ppu->g_SCREENDATA[i][j][0];
-    //         testArr[i][j][1] = ppu->g_SCREENDATA[i][j][1];
-    //         testArr[i][j][2] = ppu->g_SCREENDATA[i][j][2];
-    //         testArr[i][j][3] = 0xff;
-    //     }
-    // }
-    //SDL_UpdateTexture(texture, NULL, testArr, sizeof(uint8_t) * 4 * 160);
-    // SDL_UpdateTexture(texture, NULL, ppu->g_SCREENDATA, sizeof(uint8_t) * 3 * 160);
-    // SDL_RenderCopy(renderer, texture, NULL, NULL);
-    // SDL_RenderPresent(renderer);
     SDL_Surface* surface = SDL_GetWindowSurface(window);
     FILE* file = fopen("a.txt", "w");
     for(int i = 0; i < 160; i++){
@@ -84,8 +88,8 @@ void draw(){
             SDL_Rect rect;
             rect.h = 432/144;
             rect.w = 480/160;
-            rect.x = 480/160 * i;
-            rect.y = 432/144 * j;
+            rect.x = ((480/160) * i);
+            rect.y = ((432/144) * j) - rect.h/2; //-> maybe remove rect.h/2
             SDL_FillRect(surface, &rect, SDL_MapRGBA(surface->format, ppu->g_SCREENDATA[i][j][0], ppu->g_SCREENDATA[i][j][1], ppu->g_SCREENDATA[i][j][2], 0xff));
             fwrite(ppu->g_SCREENDATA[i][j][0] ? "1" : "0", 1, 1, file);
         }
@@ -94,4 +98,31 @@ void draw(){
     fclose(file);
     SDL_UpdateWindowSurface(window);
     SDL_FreeSurface(surface);
+}
+
+void getInput(SDL_Event event){
+    if(event.type == SDL_KEYDOWN){
+        switch (event.key.keysym.sym){
+            case SDLK_RIGHT: cpu->handleInput(0, true); break;
+            case SDLK_LEFT: cpu->handleInput(1, true); break;
+            case SDLK_UP: cpu->handleInput(2, true); break;
+            case SDLK_DOWN: cpu->handleInput(3, true); break;
+            case SDLK_a: cpu->handleInput(4, true); break;
+            case SDLK_s: cpu->handleInput(5, true); break;
+            case SDLK_z: cpu->handleInput(6, true); break;
+            case SDLK_x: cpu->handleInput(7, true); break;
+        }
+    }
+    else if (event.type == SDL_KEYUP){
+        switch (event.key.keysym.sym){
+            case SDLK_RIGHT: cpu->handleInput(0, false); break;
+            case SDLK_LEFT: cpu->handleInput(1, false); break;
+            case SDLK_UP: cpu->handleInput(2, false); break;
+            case SDLK_DOWN: cpu->handleInput(3, false); break;
+            case SDLK_a: cpu->handleInput(4, false); break;
+            case SDLK_s: cpu->handleInput(5, false); break;
+            case SDLK_z: cpu->handleInput(6, false); break;
+            case SDLK_x: cpu->handleInput(7, false); break;
+        }
+    }
 }

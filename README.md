@@ -12,11 +12,12 @@ A-GB-EMU (Aaron's Gameboy Emulator) is an ongoing project where I delve deeper i
 -   Start of proper memory implementation
 -   Implemented Interrupts (not confident in my implementation)
 -   Implemented Timer (not confident in my implementation)
--   Continue working on PPU
+-   Continued working on PPU
 -   Connected to SDL
 
 ## Next steps
 
+-   Fix PPU not updating bug
 -   Implement SDL Polling and controls
 -   Get timings correct
 -   Continue working with memory (memory control, memory banking, boot rom, etc.)

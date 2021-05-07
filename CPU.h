@@ -35,6 +35,8 @@ class CPU{
         INTERRUPT *interrupts = new INTERRUPT(&h_MEMORY.memory[0xFF00], h_MEMORY, h_PC, h_SP);
         TIMER *timer = new TIMER(&h_MEMORY.memory[0xFF04], interrupts);
 
+        void handleInput(uint8_t key, bool pressed);
+
     private:
 
         uint16_t h_SP;   // Stack Pointer
